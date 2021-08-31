@@ -74,17 +74,17 @@ cid = os.getenv('SPOTIPY_CLIENT_ID')
 secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 username = os.getenv('SPOTIPY_USERNAME')
 scope = 'playlist-modify-public'
-auth_test=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, username=username, open_browser=False)
-spottoken = util.prompt_for_user_token(username, scope, client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", oauth_manager=auth_test)
-spotify = spotipy.Spotify(auth=spottoken)
 
+spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, username=username, open_browser=False))
+print(spotify)
+#print("first token: ", spottoken)
 
 bot.playlist_name = "Discord Playlist"
 bot.playlist_id = GetPlaylistID(username, bot.playlist_name)
 bot.watch = 0
 bot.user_id = '882038663054241822'
 bot.watchchannel = '578243936078790659'
-debug = 0
+logging = 1
 
 
 
@@ -98,40 +98,62 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    #spottoken = util.prompt_for_user_token(username, scope, client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080")
+    #spotify = spotipy.Spotify(auth=spottoken)
+    
     #ignore messages from the bot
     if str(message.author.id) == str(bot.user_id):
-        
         return
 
     channel = str(message.channel.id)
     channel_name = bot.get_channel(message.channel.id)
-    
     textSearch = "spotify.com/track"
     textSearch2 = "spotify.com/album"
-    print("watchchannel / channel",bot.watchchannel,channel)
-    if bot.watch == 1:
-        if channel == bot.watchchannel:
-            if message.content.find(textSearch) != -1 or message.content.find(textSearch2) !=-1:
-                extracted = []
-                extracted.append(re.search("(?P<url>https?://[^\s]+)", message.content).group("url"))
-                print("matched with")
-                print(extracted)
-                if debug == 0:
-                    spotify.user_playlist_add_tracks(username, bot.playlist_id, extracted )
-                    if 'spotify.com/album' in extracted[0]:
-                        print("this is an album")
-                        resulttrack = ''
-                        resultartist = ''
-                    else:
-                        resulttrack = spotify.track(extracted[0], market=None)
-                        print(resulttrack['name'])
-                        print(resulttrack['artists'][0]['name'])
-                        resultartist = resulttrack['artists'][0]['name']
-                        resulttrack = resulttrack['name']
-                    await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist: ' + bot.playlist_name + ' with id: ' + bot.playlist_id)
 
-    else:
-        print("not watching")
+
+    if bot.watch != 1:
+        if logging == 1:
+            print("Not in watch mode, skipping...")
+        await bot.process_commands(message)
+        return
+
+    if channel != bot.watchchannel:
+        if logging == 1:
+            print("Not an enabled channel, skipping...")
+        await bot.process_commands(message)
+        return
+
+
+    if message.content.find(textSearch) != -1 or message.content.find(textSearch2) !=-1:
+        extracted = []
+        extracted.append(re.search("(?P<url>https?://[^\s]+)", message.content).group("url"))
+        if logging == 1:
+            print("Found this link: ")
+            print(extracted)
+        #
+        
+
+        if 'spotify.com/album' in extracted[0]:
+            if logging == 1:
+                print("Album found, adding all tracks")
+
+            
+            extracted = album_to_tracks(extracted)
+            #extracted = flatten_list(extracted)
+            resulttrack = ''
+            resultartist = ''
+        else:
+            resulttrack = spotify.track(extracted[0], market=None)
+            resultartist = resulttrack['artists'][0]['name']
+            resulttrack = resulttrack['name']
+        
+        if logging == 1:
+            print('adding ',resulttrack,' by ',resultartist)
+
+        spotify.user_playlist_add_tracks(username, bot.playlist_id, extracted )
+
+        await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist: ' + bot.playlist_name + ' with id: ' + bot.playlist_id)
+
 
     await bot.process_commands(message)
 
@@ -153,7 +175,7 @@ async def get_playlist(ctx):
 
 
 @bot.command(brief='param: name. Will create a new playlist if none exists or attach to an existing with the same name')
-async def setplaylist(ctx , *, name):
+async def set_playlist(ctx , *, name):
     duplicate = 0
     playlists = spotify.user_playlists(username)
     while playlists:
