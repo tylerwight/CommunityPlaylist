@@ -1,4 +1,4 @@
-#SpotWatcher
+# SpotWatcher
 A discord bot that will watch a specified discord channel for new spotify links when posted, and add them to a playlist on the fly.
 
 ## How to use:
@@ -10,8 +10,12 @@ A discord bot that will watch a specified discord channel for new spotify links 
 ```
 DISCORD_TOKEN=kjawe<blahblah>;anwet
 ```
-* Th
+# .env
+DISCORD_TOKEN=asdfasdfasdfasdfasdfasdf
+SPOTIPY_CLIENT_ID='asdfasdfasdfasdfasdf'
+SPOTIPY_CLIENT_SECRET='asdfasdfasdfasdf'
+SPOTIPY_USERNAME='spotify_username'
 
 ```
-python3 discord_reply_bot.py
+python3 SpotWatcher.py
 ```
