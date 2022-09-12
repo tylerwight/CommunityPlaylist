@@ -79,11 +79,12 @@ spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cid, client_secret
 print(spotify)
 #print("first token: ", spottoken)
 
-bot.playlist_name = "Discord Playlist"
+bot.playlist_name = "pump_jams"
 bot.playlist_id = GetPlaylistID(username, bot.playlist_name)
-bot.watch = 0
+bot.watch = 1
 bot.user_id = '882038663054241822'
-bot.watchchannel = '578243936078790659'
+bot.watchchannel = '578243936078790659' # actual pump up jams channel
+#bot.watchchannel = '534427957452603402' # test in testinggrounds
 logging = 1
 
 
@@ -152,7 +153,10 @@ async def on_message(message):
 
         spotify.user_playlist_add_tracks(username, bot.playlist_id, extracted )
 
-        await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist: ' + bot.playlist_name + ' with id: ' + bot.playlist_id)
+        await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + bot.playlist_name + ': ' + "<" + URIconverter("spotify:playlist:" + bot.playlist_id) + ">")
+        #print(URIconverter("spotify:playlist:" + bot.playlist_id))
+        #await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + bot.playlist_name)
+
 
 
     await bot.process_commands(message)
@@ -167,14 +171,14 @@ async def watch_channel(ctx):
         bot.watch = 0
         await ctx.channel.send("I am no longer watching a text channel")
 
-@bot.command(brief='print playlist currently uploading to')
+@bot.command(brief='show playlist currently being added to')
 async def get_playlist(ctx):
     convert="spotify:playlist:" + bot.playlist_id
     output_link=URIconverter(convert)
     await ctx.channel.send(" I am currently adding songs to this playlist: " + output_link)
 
 
-@bot.command(brief='param: name. Will create a new playlist if none exists or attach to an existing with the same name')
+@bot.command(brief='Choose the playlist to add to. Will create a new playlist if none exists or attach to an existing with the same name')
 async def set_playlist(ctx , *, name):
     duplicate = 0
     playlists = spotify.user_playlists(username)
