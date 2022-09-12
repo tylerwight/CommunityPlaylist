@@ -79,12 +79,17 @@ spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cid, client_secret
 print(spotify)
 #print("first token: ", spottoken)
 
+# Default playlist name on init. This can be changed by bot command
 bot.playlist_name = "pump_jams"
 bot.playlist_id = GetPlaylistID(username, bot.playlist_name)
 bot.watch = 1
+
+# User ID of the bot, this is so the bot doesn't read it's own messages. If this doesn't match the bot user ID, it will see it's playlist messages as something to add.
 bot.user_id = '882038663054241822'
-bot.watchchannel = '578243936078790659' # actual pump up jams channel
-#bot.watchchannel = '534427957452603402' # test in testinggrounds
+
+#hard-coded channel to watch for links. This much be changed
+bot.watchchannel = '578243936078790659' # actual  channel
+#bot.watchchannel = '534427957452603402' # test channel
 logging = 1
 
 
