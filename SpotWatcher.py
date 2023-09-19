@@ -11,8 +11,11 @@ import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth
 import time
 import asyncio
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, session
+from flask_session import Session
 import threading
+from random import randint
+import mysql.connector
 
 app = Flask(__name__)
 load_dotenv()
@@ -82,12 +85,25 @@ secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 username = os.getenv('SPOTIPY_USERNAME')
 scope = 'playlist-modify-public'
 
+#=============
+#MYSQL setup
+#=============
+sqluser = os.getenv('MYSQL_USER')
+sqlpass = os.getenv('MYSQL_PASS')
+mydb = mysql.connector.connect(
+        host = "localhost",
+        user = sqluser,
+        password = sqlpass,
+        database = "discord"
+)
+cursor = mydb.cursor()
 
 #=============
 #Flask Functions
 #=============
 @app.route('/')
 def home():
+
     return render_template("home.html")
 
 @app.route('/about')
@@ -111,6 +127,8 @@ spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cid, client_secret
 print(spotify)
 #print("first token: ", spottoken)
 
+guild_data = []
+
 # Default playlist name on init. This can be changed by bot command
 bot.playlist_name = "pump_jams"
 bot.playlist_id = GetPlaylistID(username, bot.playlist_name)
@@ -131,8 +149,41 @@ logging = 1
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
+
+    duplicate = 0
+    cursor.execute("SELECT guild_id FROM guilds")
+    existing_guilds = cursor.fetchall()
+
+    #For every guild (server) the bot is connected to, check if it exists in the database. If it doesn't, add it.
     for guild in bot.guilds:
         print(f'{guild}')
+        
+        for x in existing_guilds:
+            for y in x:
+                if str(guild.id) in y:
+                    print("duplicate guild id found!")
+                    duplicate = duplicate + 1
+                    print("Guild already exists, loading it's information")
+                    cursor.execute("SELECT * FROM guilds where guild_id=%s",([y]))
+                    records = cursor.fetchall()
+                    #print(f"records is {records}")
+                    guild_data.append(records)
+
+
+                    #print(row)
+
+        if (duplicate == 0):
+            sql = "INSERT INTO guilds (guild_id,name,enabled) VALUES (%s, %s, %s)"
+            val = (str(guild.id),str(guild), 0)
+            cursor.execute(sql, val)
+            mydb.commit()
+            print(f'I inserted {cursor.rowcount} rows using {guild.id} and {guild}')
+
+    print("")
+    print(f"guild_data loaded from DB is {guild_data}")
+
+
+
 
 @bot.event
 async def on_message(message):
@@ -241,8 +292,8 @@ async def set_playlist(ctx , *, name):
 
 
 if __name__ == '__main__':
-    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080))
-    thread.start()
+    #thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080))
+    #thread.start()
     bot.run(TOKEN)
 
 
