@@ -1,4 +1,4 @@
-#playlist_updater.py
+#SpotWatcher.py
 #Tyler Wight
 #Waits for an event (discord message in this case) and if it has a spotify link it in, it adds it to a given playlist
 import os
@@ -10,7 +10,13 @@ import spotipy
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth
 import time
+import asyncio
+from flask import Flask, render_template, request
+import threading
+
+app = Flask(__name__)
 load_dotenv()
+
 #=============
 #Functions
 #=============
@@ -63,9 +69,10 @@ def GetPlaylistID(username, playname):
 #=============
 #DISCORD auth
 #=============
+intents = discord.Intents.all()
 TOKEN = os.getenv('DISCORD_TOKEN')
-client = discord.Client()
-bot = commands.Bot(command_prefix="_")
+#client = discord.Client()
+bot = commands.Bot(command_prefix="_",intents=intents)
 
 #=============
 #Spotify auth
@@ -74,6 +81,31 @@ cid = os.getenv('SPOTIPY_CLIENT_ID')
 secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 username = os.getenv('SPOTIPY_USERNAME')
 scope = 'playlist-modify-public'
+
+
+#=============
+#Flask Functions
+#=============
+@app.route('/')
+def home():
+    return render_template("home.html")
+
+@app.route('/about')
+def about():
+    return render_template("about.html")
+
+@app.route('/contact')
+def contact():
+    return "Contact test"
+
+
+@app.route('/open')
+def open():
+    return "Done"
+
+
+
+
 
 spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, username=username, open_browser=False))
 print(spotify)
@@ -207,5 +239,10 @@ async def set_playlist(ctx , *, name):
 
 
 
-bot.run(TOKEN)
+
+if __name__ == '__main__':
+    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080))
+    thread.start()
+    bot.run(TOKEN)
+
 
