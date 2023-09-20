@@ -4,3 +4,4 @@ flaskpretty.py
 last_cmd
 .flask_session
 .cache
+tmpnotes.txt

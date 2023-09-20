@@ -263,18 +263,20 @@ async def on_message(message):
         return
 
     #check if data exists for playlist and user
-    if current_guild[5] == None:
-        await channel_name.send('There is no playlist setup to use. Please use the set_playlist command')
-        return
-    if current_guild[2] == None:
-        await channel_name.send('There is no spotify user setup to use. Please use the auth_me command')
-        return
+
 
 
     #if a spotify link is detected
     if message.content.find(textSearch) != -1 or message.content.find(textSearch2) !=-1:
         extracted = []
         extracted.append(re.search("(?P<url>https?://[^\s]+)", message.content).group("url"))
+
+        if current_guild[2] == None:
+            await channel_name.send('There is no spotify user setup to use. Please use the auth_me command')
+            return
+        if current_guild[5] == None:
+            await channel_name.send('There is no playlist setup to use. Please use the set_playlist command')
+            return
 
 
         if logging == 1:
@@ -420,11 +422,13 @@ async def auth_me(ctx, *, name):
     try:
         auth_manager.get_access_token(code.content)
         spotify = spotipy.Spotify(auth_manager=auth_manager)
-        print(spotify.current_user())
+        current_user = spotify.current_user()
+        print(current_user)
     except:
         await ctx.channel.send(f"Failed to authenticate with your access token. Did you grab the right data/code?")
         return
 
+    await ctx.channel.send(f"It worked! I am authenticated with user: {current_user}")
     guild_data[guild_index][2] = name
     sql = "UPDATE guilds set spotipy_username = %s where guild_id = %s"
     val = (name, current_guild[0])
