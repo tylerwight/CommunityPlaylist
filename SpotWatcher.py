@@ -88,8 +88,9 @@ cid = os.getenv('SPOTIPY_CLIENT_ID')
 secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 username = os.getenv('SPOTIPY_USERNAME')
 scope = 'playlist-modify-public'
-cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
-auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://10.100.1.90:8080", scope=scope, cache_handler=cache_handler, open_browser=True, show_dialog=True)
+#cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
+auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, username=username)
+
 
 #=============
 #MYSQL setup
@@ -103,58 +104,6 @@ mydb = mysql.connector.connect(
         database = "discord"
 )
 cursor = mydb.cursor()
-
-#=============
-#Flask Functions
-#=============
-
-
-
-@app.route('/')
-def home():
-    
-    if request.args.get("code"):
-        # Step 2. Being redirected from Spotify auth page
-        auth_manager.get_access_token(request.args.get("code"))
-        print("trying to use token")
-        
-        return redirect('/')   
-
-    if not auth_manager.validate_token(cache_handler.get_cached_token()):
-        print("no token")
-    else:
-        print("there is token")
-        spotify = spotipy.Spotify(auth_manager=auth_manager)
-        playlists = spotify.user_playlists(username)
-        print(cache_handler.get_cached_token())
-
-
-
-    
-    return render_template("home.html")
-
-@app.route('/about')
-def about():
-    return render_template("about.html")
-
-@app.route('/authed')
-def authed():
-    return render_template("alreadyauthed.html")
-
-@app.route('/contact')
-def contact():
-    return "Contact test"
-
-
-@app.route('/open')
-def open():
-    if not auth_manager.validate_token(cache_handler.get_cached_token()):
-        auth_url = auth_manager.get_authorize_url()
-        return redirect(auth_url)
-    print("Token already found, redirecting you")
-    return redirect('/authed')
-
-
 
 
 #=============
@@ -180,9 +129,70 @@ logging = 1
 
 
 
+
+#=============
+#Flask Functions
+#=============
+
+
+
+@app.route('/')
+def home():
+
+#    if not auth_manager.validate_token():
+#        print("no token")
+#    else:
+#        print("there is token")
+#        #spotify = spotipy.Spotify(auth_manager=auth_manager)
+ #       #playlists = spotify.user_playlists(username)
+#        print(cache_handler.get_cached_token())
+
+
+
+    
+    return render_template("home.html")
+
+@app.route('/about')
+def about():
+    return render_template("about.html")
+
+@app.route('/authed')
+def authed():
+    return render_template("alreadyauthed.html")
+
+@app.route('/contact')
+def contact():
+
+
+    return "Contact test"
+
+@app.route("/callback")
+def callback():
+    token_info = auth_manager.get_access_token(request.args["code"])
+    new_auth = SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, token_info=token_info)
+    user_id = "corl45"
+    print("printing token info fur shure")
+    print(type(token_info))
+    print (token_info)
+    print(token_info['access_token'])
+    print(type(token_info['access_token']))
+    spotify = spotipy.Spotify(auth_manager=new_auth)
+    print(spotify.current_user())
+    
+    return redirect('/')
+
+@app.route('/open')
+def open():
+    auth_url = auth_manager.get_authorize_url()
+    return redirect(auth_url)
+
+
+
 #=============
 #Discord Bot Functions
 #=============
+
+
 
 @bot.event
 async def on_ready():
@@ -229,8 +239,7 @@ async def on_ready():
     print(f"guild_data loaded is {guild_data}")
 
 
-            
-
+        
 
 
 
@@ -272,8 +281,13 @@ async def on_message(message):
         if logging == 1:
             print("Found this link: ")
             print(extracted)
-        #
-        
+
+        print(f"creating auth manager with username {current_guild[2]}")
+
+
+        auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=current_guild[2])
+        spotify = spotipy.Spotify(auth_manager=auth_manager)
+        print(spotify.current_user())
 
         if 'spotify.com/album' in extracted[0]:
             if logging == 1:
@@ -292,9 +306,10 @@ async def on_message(message):
         if logging == 1:
             print('adding ',resulttrack,' by ',resultartist)
 
-        spotify.user_playlist_add_tracks(username, bot.playlist_id, extracted )
+        print(f"attempting to add song to playlist id {current_guild[6]}")
+        spotify.user_playlist_add_tracks(username, current_guild[6], extracted )
 
-        await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + bot.playlist_name + ': ' + "<" + URIconverter("spotify:playlist:" + bot.playlist_id) + ">")
+        await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + current_guild[6] + ': ' + "<" + URIconverter("spotify:playlist:" + bot.playlist_id) + ">")
         #print(URIconverter("spotify:playlist:" + bot.playlist_id))
         #await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + bot.playlist_name)
 
@@ -327,7 +342,12 @@ async def enable(ctx):
 
 @bot.command(brief='show playlist currently being added to')
 async def get_playlist(ctx):
-    convert="spotify:playlist:" + bot.playlist_id
+    id = ctx.message.guild.id
+    for i in guild_data:
+        if (int(i[0]) == id):
+            current_guild = i
+
+    convert="spotify:playlist:" + current_guild[6]
     output_link=URIconverter(convert)
     await ctx.channel.send(" I am currently adding songs to this playlist: " + output_link)
 
@@ -349,6 +369,39 @@ async def set_channel(ctx, *, channel_id):
 
 
 
+@bot.command(brief='Authenticate your Spotify Account to allow it to create/add to playlists')
+async def auth_me(ctx, *, name):
+    id = ctx.message.guild.id
+    for index,i in enumerate(guild_data):
+        if (int(i[0]) == id):
+            current_guild = i
+            guild_index = index
+    
+    print(f"trying to auth to spotify with username {name}")
+
+    auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=name)
+    auth_url = auth_manager.get_authorize_url()
+    print(f"go here: {auth_url}")
+    await ctx.channel.send(f"You are attempting to authenticate user {name}. Please visit this URL while logged into that account:\n {auth_url} \n Once you click authorize, paste the code below.")
+    
+    def check(m):
+        return m.channel == ctx.message.channel
+    
+    code = await bot.wait_for('message', check=check)
+    print(" got code return printing content:")
+    print(code.content)
+    auth_manager.get_access_token(code.content)
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    print(spotify.current_user())
+
+    guild_data[guild_index][2] = name
+    sql = "UPDATE guilds set spotipy_username = %s where guild_id = %s"
+    val = (name, current_guild[0])
+    cursor.execute(sql, val)
+    mydb.commit()
+
+
+
 @bot.command(brief='Choose the playlist to add to. Will create a new playlist if none exists or attach to an existing with the same name')
 async def set_playlist(ctx , *, name):
     id = ctx.message.guild.id
@@ -358,7 +411,9 @@ async def set_playlist(ctx , *, name):
             guild_index = index   
     
     duplicate = 0
-
+    auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=current_guild[2])
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    print(spotify.current_user())
 
 
     playlists = spotify.user_playlists(username)
