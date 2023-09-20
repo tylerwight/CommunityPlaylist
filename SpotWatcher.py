@@ -151,7 +151,7 @@ def open():
     if not auth_manager.validate_token(cache_handler.get_cached_token()):
         auth_url = auth_manager.get_authorize_url()
         return redirect(auth_url)
-    print("Token already found, redirecting you home")
+    print("Token already found, redirecting you")
     return redirect('/authed')
 
 
