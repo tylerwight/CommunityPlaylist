@@ -3,3 +3,6 @@
 discord_mysql.py
 flaskpretty.py
 last_cmd
+.flask_session
+.cache-corl45.bak
+.cache

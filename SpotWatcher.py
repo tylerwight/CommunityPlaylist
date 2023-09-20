@@ -18,6 +18,10 @@ from random import randint
 import mysql.connector
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.urandom(64)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = './.flask_session/'
+Session(app)
 load_dotenv()
 
 #=============
@@ -84,6 +88,8 @@ cid = os.getenv('SPOTIPY_CLIENT_ID')
 secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 username = os.getenv('SPOTIPY_USERNAME')
 scope = 'playlist-modify-public'
+cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
+auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://10.100.1.90:8080", scope=scope, cache_handler=cache_handler, open_browser=True, show_dialog=True)
 
 #=============
 #MYSQL setup
@@ -101,14 +107,39 @@ cursor = mydb.cursor()
 #=============
 #Flask Functions
 #=============
+
+
+
 @app.route('/')
 def home():
+    
+    if request.args.get("code"):
+        # Step 2. Being redirected from Spotify auth page
+        auth_manager.get_access_token(request.args.get("code"))
+        print("trying to use token")
+        
+        return redirect('/')   
 
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        print("no token")
+    else:
+        print("there is token")
+        spotify = spotipy.Spotify(auth_manager=auth_manager)
+        playlists = spotify.user_playlists(username)
+        print(cache_handler.get_cached_token())
+
+
+
+    
     return render_template("home.html")
 
 @app.route('/about')
 def about():
     return render_template("about.html")
+
+@app.route('/authed')
+def authed():
+    return render_template("alreadyauthed.html")
 
 @app.route('/contact')
 def contact():
@@ -117,34 +148,41 @@ def contact():
 
 @app.route('/open')
 def open():
-    return "Done"
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        auth_url = auth_manager.get_authorize_url()
+        return redirect(auth_url)
+    print("Token already found, redirecting you home")
+    return redirect('/authed')
 
 
 
 
+#=============
+#Basic Vars and setup
+#=============
 
-spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, username=username, open_browser=False))
-print(spotify)
+#spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://10.100.1.90:8080", scope=scope, username=username, open_browser=False))
+#print(type(spotify))
 #print("first token: ", spottoken)
 
 guild_data = []
 
 # Default playlist name on init. This can be changed by bot command
 bot.playlist_name = "pump_jams"
-bot.playlist_id = GetPlaylistID(username, bot.playlist_name)
-bot.watch = 1
+#bot.playlist_id = GetPlaylistID(username, bot.playlist_name)
+#bot.watch = 1
 
 # User ID of the bot, this is so the bot doesn't read it's own messages. If this doesn't match the bot user ID, it will see it's playlist messages as something to add.
-bot.user_id = '882038663054241822'
+#bot.user_id = '882038663054241822'
 
-#hard-coded channel to watch for links. This much be changed
-bot.watchchannel = '578243936078790659' # actual  channel
-#bot.watchchannel = '534427957452603402' # test channel
+
 logging = 1
 
 
 
-
+#=============
+#Discord Bot Functions
+#=============
 
 @bot.event
 async def on_ready():
@@ -157,18 +195,17 @@ async def on_ready():
     #For every guild (server) the bot is connected to, check if it exists in the database. If it doesn't, add it.
     for guild in bot.guilds:
         print(f'{guild}')
-        
+        duplicate = 0
+
         for x in existing_guilds:
             for y in x:
                 if str(guild.id) in y:
                     print("duplicate guild id found!")
                     duplicate = duplicate + 1
-                    print("Guild already exists, loading it's information")
+                    print("Guild already exists, loading it's information from DB")
                     cursor.execute("SELECT * FROM guilds where guild_id=%s",([y]))
                     records = cursor.fetchall()
-
                     listed_records = [list(row) for row in records]
-                    print(f"records is {records}")
                     print(f"listed_records is {listed_records}")
                     guild_data.append(listed_records[0])
 
@@ -189,12 +226,9 @@ async def on_ready():
         if (duplicate > 1):
             print("more than one duplicate!? something weird is going on.")
 
-    print("")
-    print(f"guild_data is {guild_data}")
-    print(f"guild_data is type: {type(guild_data)}")
-    for item in guild_data:
-        print(f"guild data item: {item}")
-        print(f"item type: {type(item)}")
+    print(f"guild_data loaded is {guild_data}")
+
+
             
 
 
@@ -220,14 +254,14 @@ async def on_message(message):
     textSearch2 = "spotify.com/album"
 
     if current_guild[4] != 1:
-        print("Guild has not eanbled bot, skipping...")
+        print("Guild has bot disabled, skipping...")
         await bot.process_commands(message)
         return
 
 
     if channel != current_guild[3]:
         if logging == 1:
-            print("Not an enabled channel for this guild, skipping...")
+            print("Not the monitored channel for this guild, skipping...")
         await bot.process_commands(message)
         return
 
@@ -317,7 +351,16 @@ async def set_channel(ctx, *, channel_id):
 
 @bot.command(brief='Choose the playlist to add to. Will create a new playlist if none exists or attach to an existing with the same name')
 async def set_playlist(ctx , *, name):
+    id = ctx.message.guild.id
+    for index,i in enumerate(guild_data):
+        if (int(i[0]) == id):
+            current_guild = i
+            guild_index = index   
+    
     duplicate = 0
+
+
+
     playlists = spotify.user_playlists(username)
     while playlists:
         for i, playlist in enumerate(playlists['items']):
@@ -337,12 +380,20 @@ async def set_playlist(ctx , *, name):
         bot.playlist_id = GetPlaylistID(username, bot.playlist_name)
     await ctx.channel.send("Found or created a playlist named: " + str(bot.playlist_name) + " with id: " + str(bot.playlist_id))
 
+    guild_data[guild_index][6] = bot.playlist_id
+    guild_data[guild_index][5] = name
+    sql = "UPDATE guilds set playlist_name = %s, playlist_id = %s where guild_id = %s"
+    val = (name, bot.playlist_id, current_guild[0])
+    cursor.execute(sql, val)
+    mydb.commit()
+
+
 
 
 
 if __name__ == '__main__':
-    #thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080))
-    #thread.start()
+    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080))
+    thread.start()
     bot.run(TOKEN)
 
 
