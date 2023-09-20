@@ -65,9 +65,9 @@ def flatten_list(inputlist):
             flat_list.append(element)
     return flat_list
 
-def GetPlaylistID(username, playname):
+def GetPlaylistID(username, playname, spotify_obj):
     playid = ''
-    playlists = spotify.user_playlists(username)
+    playlists = spotify_obj.user_playlists(username)
     for playlist in playlists['items']:  # iterate through playlists I follow
         if playlist['name'] == playname:  # filter for newly created playlist
             playid = playlist['id']
@@ -86,10 +86,10 @@ bot = commands.Bot(command_prefix="_",intents=intents)
 #=============
 cid = os.getenv('SPOTIPY_CLIENT_ID')
 secret = os.getenv('SPOTIPY_CLIENT_SECRET')
-username = os.getenv('SPOTIPY_USERNAME')
+#username = os.getenv('SPOTIPY_USERNAME')
 scope = 'playlist-modify-public'
 #cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
-auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, username=username)
+#auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, username=username)
 
 
 #=============
@@ -248,13 +248,18 @@ async def on_message(message):
     #ignore messages from the bot
     if str(message.author.id) == str(bot.user.id):
         return
-    
+    #get information about the guild this message applies to
     id = message.guild.id
     for i in guild_data:
         if (int(i[0]) == id):
             current_guild = i
 
-    print(f"printing current_guild : {current_guild}")
+
+    #set Spotify username for auth from guild info/db
+    username=current_guild[2]
+
+    if logging==1:
+        print(f"Message detected, printing current_guild : {current_guild}")
     
 
     channel = str(message.channel.id)
@@ -262,32 +267,37 @@ async def on_message(message):
     textSearch = "spotify.com/track"
     textSearch2 = "spotify.com/album"
 
+    #Check if monitoring is enabled for this guild.
     if current_guild[4] != 1:
         print("Guild has bot disabled, skipping...")
         await bot.process_commands(message)
         return
 
-
+    #Check if the message came from the channel we want to monitor
     if channel != current_guild[3]:
         if logging == 1:
             print("Not the monitored channel for this guild, skipping...")
         await bot.process_commands(message)
         return
 
-
+    #if a spotify link is detected
     if message.content.find(textSearch) != -1 or message.content.find(textSearch2) !=-1:
         extracted = []
         extracted.append(re.search("(?P<url>https?://[^\s]+)", message.content).group("url"))
+
+
         if logging == 1:
             print("Found this link: ")
             print(extracted)
+            print(f"creating auth manager with username {username}")
 
-        print(f"creating auth manager with username {current_guild[2]}")
-
-
-        auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=current_guild[2])
-        spotify = spotipy.Spotify(auth_manager=auth_manager)
-        print(spotify.current_user())
+        try:
+            auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=username)
+            spotify = spotipy.Spotify(auth_manager=auth_manager)
+            print(spotify.current_user())
+        except:
+            await channel_name.send(' Found a spotify link, but failed spotify authentication. Did you use auth_me command?')
+            return
 
         if 'spotify.com/album' in extracted[0]:
             if logging == 1:
@@ -411,7 +421,8 @@ async def set_playlist(ctx , *, name):
             guild_index = index   
     
     duplicate = 0
-    auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=current_guild[2])
+    username = current_guild[2]
+    auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=username)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     print(spotify.current_user())
 
@@ -432,7 +443,7 @@ async def set_playlist(ctx , *, name):
     if duplicate == 0:
         bot.playlist_name = name
         spotify.user_playlist_create(username, name=bot.playlist_name)
-        bot.playlist_id = GetPlaylistID(username, bot.playlist_name)
+        bot.playlist_id = GetPlaylistID(username, bot.playlist_name, spotify)
     await ctx.channel.send("Found or created a playlist named: " + str(bot.playlist_name) + " with id: " + str(bot.playlist_id))
 
     guild_data[guild_index][6] = bot.playlist_id
