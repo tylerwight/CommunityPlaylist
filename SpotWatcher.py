@@ -312,7 +312,7 @@ async def on_message(message):
         print(f"attempting to add song to playlist id {current_guild[6]}")
         spotify.user_playlist_add_tracks(username, current_guild[6], extracted )
 
-        await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + current_guild[6] + ': ' + "<" + URIconverter("spotify:playlist:" + bot.playlist_id) + ">")
+        await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + current_guild[6] + ': ' + "<" + URIconverter("spotify:playlist:" + current_guild[6]) + ">")
 
 
 
@@ -480,7 +480,7 @@ async def set_playlist(ctx , *, name):
         bot.playlist_name = name
         spotify.user_playlist_create(username, name=bot.playlist_name)
         bot.playlist_id = GetPlaylistID(username, bot.playlist_name, spotify)
-    await ctx.channel.send("Found or created a playlist named: " + str(bot.playlist_name) + " with id: " + str(bot.playlist_id))
+    await ctx.channel.send("Found or created a playlist named: " + str(guild_data[guild_index][5]) + " with id: " + str(guild_data[guild_index][6]))
 
     guild_data[guild_index][6] = bot.playlist_id
     guild_data[guild_index][5] = name
