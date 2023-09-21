@@ -515,23 +515,22 @@ async def set_playlist(ctx , *, name):
             if playlist['name'] == name:
                 print("playlist name already exists, will add to it")
                 duplicate = 1
-                bot.playlist_id = playlist['uri']
-                bot.playlist_name = name
+                guild_data[guild_index][6] = playlist['uri']
+                guild_data[guild_index][5] = name
         if playlists['next']:
             playlists = spotify.next(playlists)
         else:
             playlists = None
     
     if duplicate == 0:
-        bot.playlist_name = name
-        spotify.user_playlist_create(username, name=bot.playlist_name)
-        bot.playlist_id = GetPlaylistID(username, bot.playlist_name, spotify)
+        guild_data[guild_index][5] = name
+        spotify.user_playlist_create(username, name=guild_data[guild_index][5])
+        guild_data[guild_index][6] = GetPlaylistID(username, guild_data[guild_index][5], spotify)
     await ctx.channel.send("Found or created a playlist named: " + str(guild_data[guild_index][5]) + " with id: " + str(guild_data[guild_index][6]))
 
-    guild_data[guild_index][6] = bot.playlist_id
     guild_data[guild_index][5] = name
     sql = "UPDATE guilds set playlist_name = %s, playlist_id = %s where guild_id = %s"
-    val = (name, bot.playlist_id, current_guild[0])
+    val = (name, guild_data[guild_index][6], current_guild[0])
     cursor.execute(sql, val)
     mydb.commit()
 
