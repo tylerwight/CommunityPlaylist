@@ -54,3 +54,9 @@ note: default command prefix is "_" so be defualt to run the auth_me command wil
 - get_playlist                  - Displays the spotify playlist currently in use for adding songs.
 - set_channel <channel ID>      - Set/change the channel ID of the channel you want the bot to monitor
 - set_playlist <playlist_name>  - Set/change the spotify playlist to use for adding songs. If it finds an existing playlist it will add to it, otherwise it will create a new one.
+
+
+## TODO:
+- add web frontend
+- steamline spotify authentication (using web frontend)
+- add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
