@@ -124,9 +124,9 @@ def home():
     
     return render_template("home.html")
 
-@app.route('/about')
-def about():
-    return render_template("about.html")
+@app.route('/howto')
+def howto():
+    return render_template("howto.html")
 
 @app.route('/authed')
 def authed():
@@ -136,7 +136,7 @@ def authed():
 def contact():
 
 
-    return "Contact test"
+    return "TODO: Add Contact info"
 
 
 
@@ -172,7 +172,7 @@ def my_form_post():
             asyncio.run_coroutine_threadsafe(send_message('Authentication worked',534427957452603402),bot.loop)
             return render_template("itworked.html")
         
-        
+
     return redirect("notrecognized.html")
         
 
@@ -496,7 +496,7 @@ async def auth_me(ctx, *, name):
     auth_url = auth_manager.get_authorize_url()
     if logging == 1:
         print(f"telling user to go here: {auth_url}")
-    await ctx.channel.send(f"You are attempting to authenticate user {name}. Please visit this URL while logged into that account:\n {auth_url} \n Once you click authorize, paste the code below.")
+    await ctx.channel.send(f"You are attempting to authenticate Spotify user {name}. Please visit this URL while logged into that account:\n {auth_url}")
     sp_cred_queue.append(name)
     print(sp_cred_queue)
 
@@ -505,9 +505,9 @@ async def auth_me(ctx, *, name):
     def check(m):
         return m.channel == ctx.message.channel
     
-    code = await bot.wait_for('message', check=check)
-    if logging == 1:
-        print(f"got code return printing content:{code.content}")
+ #   code = await bot.wait_for('message', check=check)
+ #   if logging == 1:
+ #       print(f"got code return printing content:{code.content}")
 
 #=============
 #set_playlist command

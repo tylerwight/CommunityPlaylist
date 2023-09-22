@@ -33,8 +33,28 @@
             <div class="container px-lg-5">
                 <div class="p-4 p-lg-5 bg-light rounded-3 text-center">
                     <div class="m-4 m-lg-5">
-                        <h1 class="display-5 fw-bold">It Worked!</h1>
-                        <p class="fs-4">You have authenticated Spotify to SpotWatcher!</p>
+                        <h1 class="display-5 fw-bold">How To Use SpotWatcher</h1>
+                        <div style="margin-left: 50px; text-align: left;">
+                            <ol>
+                                <li><p>Ensure the bot has been added to your server. You can add it with the button on the home page</p>
+                                <li><p>Use the &quot;_auth_me <spotify username>&quot; command to authenticate to spotify.</p>
+                                <ul>
+                                <li>Get the username by logging into Spotify on a web browser and going to account section, it <strong>could</strong> be a random bunch of numbers/letters</li>
+                                <li>Click the link the bot posts to open spotify in a browser where you are logged into the account you put in the auth_me command</li>
+                                <li>Click authorize, it will redirect to this website to finish your authorization</li>
+                                </ul>
+                                </li>
+                                <li><p>Use &quot;_set_playlist <name>&quot; to choose a Spotify playlist to put stuff in. If it exists in your account already it will add to it, if it doesn&#39;t it will create it.</p>
+                                </li>
+                                <li><p>Use &quot;_set_channel <channel_id>&quot; to choose which channel it watches for Spotify links. You can get the text channel id by right clicking -&gt; copy link. Paste the link somewhere to look at it. The channel ID is the final (right-most) number.</p>
+                                </li>
+                                <li><p>Use the &quot;_enable&quot; command to turn on (or off) monitoring &quot;_enable&quot;</p>
+                                </li>
+                                <li><p>Paste a Spotify link in the channel you set. If all is well, it should be automatically added to the playlist you setup, using the account you authenticated with.</p>
+                                </li>
+                                </ol>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
