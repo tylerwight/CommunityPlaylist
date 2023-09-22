@@ -158,10 +158,11 @@ def my_form_post():
         try:
             auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="https://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, username=text)
             auth_manager.get_access_token(request.args.get("code"))
-        except:
+        except Exception as error:
             print("Creating auth manager and pulling token in callback failed")
+            print(error)
             asyncio.run_coroutine_threadsafe(send_message('Authentication failed. Try again.',534427957452603402),bot.loop)
-            return redirect("nowork.html")
+            return render_template("nowork.html")
 
         sp_cred_queue.remove(text)
 
