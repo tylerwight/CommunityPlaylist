@@ -571,7 +571,7 @@ async def send_message(message, id):
 
 
 if __name__ == '__main__':
-    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080, ssl_context='adhoc'))
+    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=443, ssl_context='adhoc'))
     thread.start()
     bot.run(TOKEN)
 
