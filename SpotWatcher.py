@@ -48,7 +48,6 @@ def URIconverter(inp):
 def album_to_tracks(album_ids, spotify_obj):
     result1 = []
     final_result = []
-    #print(album_ids)
     for ids in album_ids:
         result1.append(spotify_obj.album_tracks(f'{ids}'))
     for item in result1:
@@ -97,6 +96,7 @@ cursor = mydb.cursor()
 #Basic Vars and setup
 #=============
 guild_data = []
+sp_cred_queue = []
 logging = 1
 
 
@@ -138,20 +138,49 @@ def contact():
 
     return "Contact test"
 
+
+
 @app.route("/callback")
 def callback():
-    token_info = auth_manager.get_access_token(request.args["code"])
-    new_auth = SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, token_info=token_info)
-    user_id = "corl45"
-    print("printing token info fur shure")
-    print(type(token_info))
-    print (token_info)
-    print(token_info['access_token'])
-    print(type(token_info['access_token']))
-    spotify = spotipy.Spotify(auth_manager=new_auth)
-    print(spotify.current_user())
+    print(f"sp_cred_queue: {sp_cred_queue}")
+    if not ('code' in request.args):
+        return redirect('/')
     
-    return redirect('/')
+    return render_template("enteruser.html")
+
+
+@app.route('/callback', methods=['POST'])
+def my_form_post():
+    text = request.form['text']
+    print(f"input from text form {text}")
+
+    if text in sp_cred_queue:
+        try:
+            auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="https://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, username=text)
+            auth_manager.get_access_token(request.args.get("code"))
+        except:
+            print("Creating auth manager and pulling token in callback failed")
+            asyncio.run_coroutine_threadsafe(send_message('Authentication failed. Try again.',534427957452603402),bot.loop)
+            return redirect("nowork.html")
+
+        sp_cred_queue.remove(text)
+
+        if auth_manager.validate_token(auth_manager.cache_handler.get_cached_token()):
+            spotify = spotipy.Spotify(auth_manager=auth_manager)
+            print("Did it work?")
+            print(spotify.current_user())
+            asyncio.run_coroutine_threadsafe(send_message('Authentication worked',534427957452603402),bot.loop)
+            return render_template("itworked.html")
+        
+        
+    return redirect("notrecognized.html")
+        
+
+    
+
+
+    
+
 
 @app.route('/open')
 def open():
@@ -163,6 +192,9 @@ def open():
 #=============
 #Discord Bot Functions
 #=============
+
+
+
 
 
 #=============
@@ -213,15 +245,18 @@ async def on_ready():
             guild_data.append(item)
         
         if (duplicate > 1):
-            print("more than one duplicate!? something weird is going on.")
+            if logging == 1:
+                print("more than one duplicate!? something weird is going on.")
 
     print(f"guild_data loaded is {guild_data}")
 
 @bot.event
 async def on_guild_join(guild):
-    print("===========================")
-    print(f'{guild} has  just added the discord bot!!')
-    print("===========================")
+
+    if logging == 1:
+        print("===========================")
+        print(f'{guild} has  just added the discord bot!!')
+        print("===========================")
 
 
     duplicate = 0
@@ -442,11 +477,17 @@ async def auth_me(ctx, *, name):
             current_guild = i
             guild_index = index
     
+    guild_data[guild_index][2] = name
+    sql = "UPDATE guilds set spotipy_username = %s where guild_id = %s"
+    val = (name, current_guild[0])
+    cursor.execute(sql, val)
+    mydb.commit()
+
     if logging == 1:
         print(f"trying to auth to spotify with username {name}")
 
     try:
-        auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=name)
+        auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="https://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, username=name)
     except:
         ctx.channel.send(f" Tried to auth to spotify with user {name} but it failed. Not sure why")
         return
@@ -456,31 +497,17 @@ async def auth_me(ctx, *, name):
     if logging == 1:
         print(f"telling user to go here: {auth_url}")
     await ctx.channel.send(f"You are attempting to authenticate user {name}. Please visit this URL while logged into that account:\n {auth_url} \n Once you click authorize, paste the code below.")
-    
+    sp_cred_queue.append(name)
+    print(sp_cred_queue)
+
+
+
     def check(m):
         return m.channel == ctx.message.channel
     
     code = await bot.wait_for('message', check=check)
     if logging == 1:
         print(f"got code return printing content:{code.content}")
-
-
-    try:
-        auth_manager.get_access_token(code.content)
-        spotify = spotipy.Spotify(auth_manager=auth_manager)
-        current_user = spotify.current_user()
-        print(current_user)
-    except:
-        await ctx.channel.send(f"Failed to authenticate with your access token. Did you grab the right data/code?")
-        return
-
-    await ctx.channel.send(f"It worked! I am authenticated with user: {current_user}")
-    guild_data[guild_index][2] = name
-    sql = "UPDATE guilds set spotipy_username = %s where guild_id = %s"
-    val = (name, current_guild[0])
-    cursor.execute(sql, val)
-    mydb.commit()
-
 
 #=============
 #set_playlist command
@@ -535,12 +562,19 @@ async def set_playlist(ctx , *, name):
     mydb.commit()
 
 
+async def send_message(message, id):
+    channel = bot.get_channel(id)
+    await channel.send(message)
+
+
 
 
 
 if __name__ == '__main__':
-    #thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080))
-    #thread.start()
+    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080, ssl_context='adhoc'))
+    thread.start()
     bot.run(TOKEN)
+
+
 
 
