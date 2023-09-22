@@ -2,6 +2,7 @@
 #Tyler WIght
 # setup environment to run discord mysql bot
 sudo apt install python3
+sudo apt install python3-pip
 pip install discord
 pip install python-dotenv
 pip install mysql-connector-python
