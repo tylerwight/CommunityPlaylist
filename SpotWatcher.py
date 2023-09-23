@@ -102,6 +102,7 @@ cursor = mydb.cursor()
 guild_data = []
 sp_cred_queue = []
 callbackurl = os.getenv('CALLBACK')
+flaskport = os.getenv('PORT')
 logging = 1
 
 
@@ -547,7 +548,7 @@ async def send_message(message, id):
 
 
 if __name__ == '__main__':
-    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080, ssl_context='adhoc'))
+    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=flaskport, ssl_context='adhoc'))
     thread.start()
     bot.run(TOKEN)
 
