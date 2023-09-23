@@ -13,17 +13,21 @@ from spotipy.oauth2 import SpotifyOAuth
 import time
 import asyncio
 from flask import Flask, render_template, request, redirect, session
-from flask_session import Session
+#from flask_session import Session
 import threading
 from random import randint
 import mysql.connector
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = './.flask_session/'
-Session(app)
 load_dotenv()
+
+
+class MyForm(FlaskForm):
+    text_input = StringField('Text Input')
+    submit_button = SubmitField('Submit')
 
 #=============
 #Functions
@@ -97,6 +101,7 @@ cursor = mydb.cursor()
 #=============
 guild_data = []
 sp_cred_queue = []
+callbackurl = "https://10.100.1.90:8080"
 logging = 1
 
 
@@ -110,94 +115,64 @@ logging = 1
 
 @app.route('/')
 def home():
-
-#    if not auth_manager.validate_token():
-#        print("no token")
-#    else:
-#        print("there is token")
-#        #spotify = spotipy.Spotify(auth_manager=auth_manager)
- #       #playlists = spotify.user_playlists(username)
-#        print(cache_handler.get_cached_token())
-
-
-
     
     return render_template("home.html")
 
 @app.route('/howto')
 def howto():
+
     return render_template("howto.html")
 
 @app.route('/authed')
 def authed():
+
     return render_template("alreadyauthed.html")
 
 @app.route('/contact')
 def contact():
-
-
     return "TODO: Add Contact info"
+    return render_template("index.html", form=form)
 
 
-
-@app.route("/callback")
+@app.route('/callback', methods=['GET','POST'])
 def callback():
-    print(f"sp_cred_queue: {sp_cred_queue}")
     if not ('code' in request.args):
         return redirect('/')
-    
-    return render_template("enteruser.html")
+        
+    form = MyForm()
+    if form.validate_on_submit():
+        text = form.text_input.data
 
+        if text in sp_cred_queue:
+            try:
+                auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=scope, open_browser=True, show_dialog=True, username=text)
+                auth_manager.get_access_token(request.args.get("code"))
+            except Exception as error:
+                print("Creating auth manager and pulling token in callback failed")
+                print(error)
+                asyncio.run_coroutine_threadsafe(send_message('Authentication failed. Try again.',534427957452603402),bot.loop)
+                return render_template("nowork.html")
 
-@app.route('/callback', methods=['POST'])
-def my_form_post():
-    text = request.form['text']
-    print(f"input from text form {text}")
+            sp_cred_queue.remove(text)
 
-    if text in sp_cred_queue:
-        try:
-            auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="https://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, username=text)
-            auth_manager.get_access_token(request.args.get("code"))
-        except Exception as error:
-            print("Creating auth manager and pulling token in callback failed")
-            print(error)
-            asyncio.run_coroutine_threadsafe(send_message('Authentication failed. Try again.',534427957452603402),bot.loop)
-            return render_template("nowork.html")
-
-        sp_cred_queue.remove(text)
-
-        if auth_manager.validate_token(auth_manager.cache_handler.get_cached_token()):
-            spotify = spotipy.Spotify(auth_manager=auth_manager)
-            print("Did it work?")
-            print(spotify.current_user())
-            asyncio.run_coroutine_threadsafe(send_message('Authentication worked',534427957452603402),bot.loop)
-            return render_template("itworked.html")
+            if auth_manager.validate_token(auth_manager.cache_handler.get_cached_token()):
+                spotify = spotipy.Spotify(auth_manager=auth_manager)
+                print("Did it work?")
+                print(spotify.current_user())
+                asyncio.run_coroutine_threadsafe(send_message('Authentication worked',534427957452603402),bot.loop)
+                return render_template("itworked.html")
+            
+        return render_template("notrecognized.html")
         
 
-    return redirect("notrecognized.html")
+    return render_template("enteruser.html", form=form)
         
-
-    
-
-
-    
-
-
-@app.route('/open')
-def open():
-    auth_url = auth_manager.get_authorize_url()
-    return redirect(auth_url)
 
 
 
 #=============
 #Discord Bot Functions
 #=============
-
-
-
-
-
 #=============
 #On Ready
 #=============
@@ -368,7 +343,7 @@ async def on_message(message):
         
         #try to auth to spotify
         try:
-            auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=username)
+            auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=scope, open_browser=True, show_dialog=True, username=username)
             spotify = spotipy.Spotify(auth_manager=auth_manager)
             print(spotify.current_user())
         except:
@@ -488,7 +463,7 @@ async def auth_me(ctx, *, name):
         print(f"trying to auth to spotify with username {name}")
 
     try:
-        auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="https://10.100.1.90:8080/callback", scope=scope, open_browser=True, show_dialog=True, username=name)
+        auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=scope, open_browser=True, show_dialog=True, username=name)
     except:
         ctx.channel.send(f" Tried to auth to spotify with user {name} but it failed. Not sure why")
         return
@@ -529,7 +504,7 @@ async def set_playlist(ctx , *, name):
 
     try:
         username = current_guild[2]
-        auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri="http://localhost:8080", scope=scope, open_browser=True, show_dialog=True, username=username)
+        auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=scope, open_browser=True, show_dialog=True, username=username)
         spotify = spotipy.Spotify(auth_manager=auth_manager)
         print(spotify.current_user())
     except:
@@ -572,7 +547,7 @@ async def send_message(message, id):
 
 
 if __name__ == '__main__':
-    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=443, ssl_context='adhoc'))
+    thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=8080, ssl_context='adhoc'))
     thread.start()
     bot.run(TOKEN)
 

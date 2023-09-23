@@ -36,8 +36,14 @@
                         <h1 class="display-5 fw-bold">Spotwatcher Spotify Authentication</h1>
                         <p class="fs-4">Please paste your spotify username below.</p>
                         <form method="POST">
-                            <input name="text">
-                            <input type="submit">
+                            {{ form.hidden_tag() }}
+                            <div>
+                                {{ form.text_input.label }}
+                                {{ form.text_input() }}
+                            </div>
+                            <div>
+                                {{ form.submit_button() }}
+                            </div>
                         </form>
                     </div>
                 </div>

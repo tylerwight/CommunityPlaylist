@@ -8,6 +8,7 @@ pip install python-dotenv
 pip install mysql-connector-python
 pip install spotipy
 pip install flask
+pip install Flask-WTF
 sudo apt install mysql-server
 sudo systemctl start mysql.service
 
