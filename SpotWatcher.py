@@ -101,7 +101,7 @@ cursor = mydb.cursor()
 #=============
 guild_data = []
 sp_cred_queue = []
-callbackurl = "https://10.100.1.90:8080"
+callbackurl = "https://10.100.1.90:8080/callback"
 logging = 1
 
 
@@ -150,7 +150,7 @@ def callback():
             except Exception as error:
                 print("Creating auth manager and pulling token in callback failed")
                 print(error)
-                asyncio.run_coroutine_threadsafe(send_message('Authentication failed. Try again.',534427957452603402),bot.loop)
+                #asyncio.run_coroutine_threadsafe(send_message('Authentication failed. Try again.',534427957452603402),bot.loop)
                 return render_template("nowork.html")
 
             sp_cred_queue.remove(text)
@@ -159,7 +159,7 @@ def callback():
                 spotify = spotipy.Spotify(auth_manager=auth_manager)
                 print("Did it work?")
                 print(spotify.current_user())
-                asyncio.run_coroutine_threadsafe(send_message('Authentication worked',534427957452603402),bot.loop)
+                #asyncio.run_coroutine_threadsafe(send_message('Authentication worked',534427957452603402),bot.loop)
                 return render_template("itworked.html")
             
         return render_template("notrecognized.html")
