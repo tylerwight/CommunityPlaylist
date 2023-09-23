@@ -101,7 +101,7 @@ cursor = mydb.cursor()
 #=============
 guild_data = []
 sp_cred_queue = []
-callbackurl = "https://10.100.1.90:8080/callback"
+callbackurl = os.getenv('CALLBACK')
 logging = 1
 
 
