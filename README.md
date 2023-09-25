@@ -18,6 +18,8 @@ MYSQL_USER='discord'
 MYSQL_PASS='<mysql password>'
 SPOTIPY_CLIENT_ID='<spotify_client_id>'
 SPOTIPY_CLIENT_SECRET='<spotify_client_secret>'
+CALLBACK="<URL for Spotify Callback>" (http://localhost:8080/callback for testing locally)
+PORT = "8080"
 ```
 
 Once everything has been been setup, start the bot like this:
@@ -42,7 +44,7 @@ note: default command prefix is "_" so be defualt to run the auth_me command wil
 
 3. Use "set_channel <channel_id>" to choose which channel it watches for spotify links. You can get the text channel id by right clicking -> copy link. Paste the link somewhere to look at it. The channel ID is the final (right-most) number.
 
-4. Use the "enable" command to turn on (or off) monitoring "_enable"
+4. Use the "enable" command to turn on (or off) monitoring of the channel for spotify links. "_enable"
 
 5. Paste a spotify link in the channel you set. If all is well, it should be automatically added to the playlist you setup, using the account you authenticated with.
 
@@ -57,7 +59,7 @@ note: default command prefix is "_" so be defualt to run the auth_me command wil
 
 
 ## TODO:
-- add web frontend
+- add web frontend (half way done)
 - steamline spotify authentication (using web frontend)
 - add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
 - update to discords build in command prefix stuff

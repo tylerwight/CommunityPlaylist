@@ -92,6 +92,7 @@ mydb = mysql.connector.connect(
         user = sqluser,
         password = sqlpass,
         database = "discord"
+        reconnect = True
 )
 cursor = mydb.cursor()
 
