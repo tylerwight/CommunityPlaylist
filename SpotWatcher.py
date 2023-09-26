@@ -91,8 +91,7 @@ mydb = mysql.connector.connect(
         host = "localhost",
         user = sqluser,
         password = sqlpass,
-        database = "discord",
-        reconnect = True
+        database = "discord"
 )
 cursor = mydb.cursor()
 
