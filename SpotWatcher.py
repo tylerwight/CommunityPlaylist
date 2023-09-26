@@ -68,6 +68,15 @@ def GetPlaylistID(username, playname, spotify_obj):
             playid = playlist['id']
     return playid
 
+def reconnect_db(db_obj, cursor_obj):
+    db_obj = mysql.connector.connect(
+        host = "localhost",
+        user = sqluser,
+        password = sqlpass,
+        database = "discord"
+    )
+    cursor_obj = mydb.cursor()
+
 #=============
 #DISCORD auth
 #=============
@@ -224,8 +233,12 @@ async def on_ready():
         if (duplicate > 1):
             if logging == 1:
                 print("more than one duplicate!? something weird is going on.")
-
-    print(f"guild_data loaded is {guild_data}")
+    if logging == 1:
+        print("===========================")
+        print(f"guild_data loaded is:")
+        for i in guild_data:
+            print(i)
+        print("===========================")
 
 @bot.event
 async def on_guild_join(guild):
@@ -535,8 +548,15 @@ async def set_playlist(ctx , *, name):
     guild_data[guild_index][5] = name
     sql = "UPDATE guilds set playlist_name = %s, playlist_id = %s where guild_id = %s"
     val = (name, guild_data[guild_index][6], current_guild[0])
-    cursor.execute(sql, val)
-    mydb.commit()
+    try:
+        cursor.execute(sql, val)
+        mydb.commit()
+    except:
+        if logging == 1:
+            print("failed to write set_playlist to DB, has connection timed out? Trying to reconnect")
+        reconnect_db(mydb, cursor)
+        cursor.execute(sql, val)
+        mydb.commit()
 
 
 async def send_message(message, id):
