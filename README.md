@@ -60,6 +60,8 @@ note: default command prefix is "_" so be defualt to run the auth_me command wil
 
 ## TODO:
 - add web frontend (half way done)
+- Use discord.py's Cogs for commands
+- sql connection and spotify auth methods (reduce duplication)
 - steamline spotify authentication (using web frontend)
 - add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
 - update to discords build in command prefix stuff
