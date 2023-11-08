@@ -96,12 +96,7 @@ scope = 'playlist-modify-public'
 #=============
 sqluser = os.getenv('MYSQL_USER')
 sqlpass = os.getenv('MYSQL_PASS')
-mydb = mysql.connector.connect(
-        host = "localhost",
-        user = sqluser,
-        password = sqlpass,
-        database = "discord"
-)
+mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
 cursor = mydb.cursor()
 
 
