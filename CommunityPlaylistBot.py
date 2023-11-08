@@ -1,24 +1,27 @@
+import nest_asyncio
+nest_asyncio.apply()
 import os
 import re
 import discord
-from discord.ext import commands
+from discord.ext import commands, ipc
 from dotenv import load_dotenv
 import logging
 import spotipy
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth
+from cogs.ping import ping
 import time
 import asyncio
-from flask import Flask, render_template, request, redirect, session
+#from flask import Flask, render_template, request, redirect, session
 #from flask_session import Session
 import threading
 from random import randint
 import mysql.connector
-from flask_wtf import FlaskForm
+#from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 
 
-class SpotWatcher(commands.Bot):
+class CommunityPlaylistBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -28,12 +31,12 @@ class SpotWatcher(commands.Bot):
         self.sqlpass = kwargs.pop('sqlpass', None)
         self.spotify_cid = kwargs.pop('spotify_cid', None)
         self.spotify_secret = kwargs.pop('spotify_secret', None)
-        
+
+        self.ipc = ipc.Server(self, secret_key = "test")        
 
         self.guild_data = []
         self.sp_cred_queue = []
         self.spotify_scope = 'playlist-modify-public'
-
         self.register_commands()
 
     @staticmethod
@@ -72,19 +75,36 @@ class SpotWatcher(commands.Bot):
         return playid
 
 
-        
+    async def send_message(self, message, id):
+        channel = self.get_channel(id)
+        await channel.send(message)
+
+    async def on_ipc_ready(self):
+        print("IPC Server Ready")
+    
+    async def on_ipc_error(self, endpoint, error):
+        print(f"{endpoint} raised {error}")
+
+    
+    async def setup_hook(self):
+        for filename in os.listdir('./cogs'):
+            if filename.endswith('.py'):
+                await self.load_extension(f'cogs.{filename[:-3]}')
+                print(f"Loaded Cog: {filename[:-3]}")
+            else:
+                print("Unable to load pycache folder.")
 
     #=============
     #On Ready
     #=============
     async def on_ready(self):
         logging.info(f'{self.user} has connected to Discord!')
-        
+        self.ipc.start()
         try:
-            mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
+            mydb = mysql.connector.connect(host = "localhost", user = self.sqluser, password = self.sqlpass, database = "discord")
             cursor = mydb.cursor()
-        except:
-            logging.error(f'error connecting to Mysql DB')
+        except Exception as e:
+            logging.error(f'error connecting to Mysql DB error: {e}')
 
         cursor.execute("SELECT guild_id FROM guilds")
         existing_guilds = cursor.fetchall()
@@ -170,7 +190,7 @@ class SpotWatcher(commands.Bot):
                     listed_records = [list(row) for row in records]
                     logging.info(f"data loaded for guild: {listed_records[0]}")
 
-                    selfguild_data.append(listed_records[0]) 
+                    self.guild_data.append(listed_records[0]) 
 
         #Guild does not exist in DB, create it in the DB
         if (duplicate == 0):
@@ -228,7 +248,7 @@ class SpotWatcher(commands.Bot):
         #Check if the message came from the channel we want to monitor
         if channel != current_guild[3]:
             logging.info("Not the monitored channel for this guild, skipping...")
-            await bot.process_commands(message)
+            await self.process_commands(message)
             return
 
         #check if data exists for playlist and user
@@ -266,7 +286,7 @@ class SpotWatcher(commands.Bot):
                 logging.info("Album found, adding all tracks")
 
                 
-                extracted = album_to_tracks(extracted, spotify)
+                extracted = self.album_to_tracks(extracted, spotify)
                 resulttrack = ''
                 resultartist = ''
             else:
@@ -280,16 +300,39 @@ class SpotWatcher(commands.Bot):
             logging.info(f"attempting to add song to playlist id {current_guild[6]}")
             spotify.user_playlist_add_tracks(username, current_guild[6], extracted )
 
-            await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + current_guild[6] + ': ' + "<" + SpotWatcher.URIconverter("spotify:playlist:" + current_guild[6]) + ">")
+            await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + current_guild[6] + ': ' + "<" + self.URIconverter("spotify:playlist:" + current_guild[6]) + ">")
 
 
 
-        await bot.process_commands(message)
-
+        await self.process_commands(message)
 
     def register_commands(self):
 
-        @self.command(brief='start watching specified channel')
+        @self.ipc.route()
+        async def get_guild(data):
+            guild = self.get_guild(data.guild_id)
+            if guild is None: return None
+
+            guild_data = {
+                "name": guild.name,
+                "id": guild.id,
+                "prefix" : "?"
+            }
+
+            return guild_data
+
+        @self.ipc.route()
+        async def get_guild_ids(data):
+            final = []
+            for guild in self.guilds:
+                final.append(guild.id)
+            return final # returns the guild ids to the client
+        
+        @self.ipc.route()
+        async def get_guild_count(data):
+            return len(self.guilds)
+
+        '''@self.command(brief='start watching specified channel')
         async def enable(ctx):
             id = ctx.message.guild.id
             for index,i in enumerate(self.guild_data):
@@ -316,10 +359,11 @@ class SpotWatcher(commands.Bot):
             cursor.execute(sql, val)
             mydb.commit()
             cursor.close()
-            mydb.close()
+            mydb.close()'''
+
 
         
-        @self.command(brief='show playlist currently being added to')
+        """@self.command(brief='show playlist currently being added to')
         async def get_playlist(ctx):
             id = ctx.message.guild.id
             for i in self.guild_data:
@@ -331,8 +375,10 @@ class SpotWatcher(commands.Bot):
                 return
 
             convert="spotify:playlist:" + current_guild[6]
-            output_link=SpotWatcher.URIconverter(convert)
-            await ctx.channel.send("I am currently adding songs to this playlist: " + output_link)
+            output_link=self.URIconverter(convert)
+            await ctx.channel.send("I am currently adding songs to this playlist: " + output_link)"""
+
+
 
 
         @self.command(brief='Set which text channel to watch for spotify links')
@@ -435,7 +481,7 @@ class SpotWatcher(commands.Bot):
             if duplicate == 0:
                 self.guild_data[guild_index][5] = name
                 spotify.user_playlist_create(username, name=self.guild_data[guild_index][5])
-                self.guild_data[guild_index][6] = SpotWatcher.GetPlaylistID(username, self.guild_data[guild_index][5], spotify)
+                self.guild_data[guild_index][6] = self.GetPlaylistID(username, self.guild_data[guild_index][5], spotify)
             await ctx.channel.send("Found or created a playlist named: " + str(self.guild_data[guild_index][5]) + " with id: " + str(self.guild_data[guild_index][6]))
 
             self.guild_data[guild_index][5] = name
@@ -455,9 +501,6 @@ class SpotWatcher(commands.Bot):
                 
                 logging.error("failed to write set_playlist to DB")
 
-    async def send_message(message, id):
-        channel = self.get_channel(id)
-        await channel.send(message)
 
 
 
@@ -473,14 +516,11 @@ if __name__ == '__main__':
     sqlpass = os.getenv('MYSQL_PASS')
     cid = os.getenv('SPOTIPY_CLIENT_ID')
     secret = os.getenv('SPOTIPY_CLIENT_SECRET')
+    TOKEN = os.getenv('DISCORD_TOKEN')
 
     intents = discord.Intents.all()
-    bot = SpotWatcher(command_prefix="!",intents=intents, callbackurl=callbackurl, flaskport=port, sqluser=sqluser, sqlpass=sqlpass, spotify_cid=cid, spotify_secret=secret)
-
-#        self.spotify_cid = kwargs.pop('spotify_cid', None)
-#        self.spotify_secret = kwargs.pop('spotify_secret', None)
-        
-
-
-    TOKEN = os.getenv('DISCORD_TOKEN')
+    bot = CommunityPlaylistBot(command_prefix="!",intents=intents, callbackurl=callbackurl, flaskport=port, sqluser=sqluser, sqlpass=sqlpass, spotify_cid=cid, spotify_secret=secret)
+    
     bot.run(TOKEN)
+
+    
