@@ -6,3 +6,7 @@ last_cmd
 .cache
 tmpnotes.txt
 .gitignore
+cogs/__pycache__
+__pycache__
+.cache*
+html5up-solid-state.zip
