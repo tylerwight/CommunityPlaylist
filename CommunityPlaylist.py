@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 import discord
 from quart import Quart, render_template, request, session, redirect, url_for
 from quart_discord import DiscordOAuth2Session
-from discord.ext import ipc
+from quart import Quart
+from discord.ext.ipc.client import Client
 
 load_dotenv()
 
@@ -28,12 +29,15 @@ app.config["SECRET_KEY"] = "test123"
 app.config["DISCORD_CLIENT_ID"] = discord_cl_id
 app.config["DISCORD_CLIENT_SECRET"] = discord_cl_secret
 app.config["DISCORD_REDIRECT_URI"] = discord_redirect_uri
-ipc_client = ipc.Client(secret_key = "test")
+ipc_client = Client(secret_key = "test")
 ddiscord = DiscordOAuth2Session(app)
 
 
 @app.route("/")
 async def home():
+	resp = await ipc_client.request("get_guild_data")
+	print(resp)
+	print(str(resp.response))
 	return await render_template("index.html", authorized = await ddiscord.authorized)
 
 @app.route("/login")
@@ -89,3 +93,5 @@ intents = discord.Intents.all()
 
 if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=8080)
+	
+

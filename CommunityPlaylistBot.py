@@ -3,7 +3,10 @@ nest_asyncio.apply()
 import os
 import re
 import discord
-from discord.ext import commands, ipc
+from discord.ext import commands
+from discord.ext.ipc.server import Server
+from discord.ext.ipc.objects import ClientPayload
+from typing import Dict
 from dotenv import load_dotenv
 import logging
 import spotipy
@@ -19,6 +22,7 @@ from random import randint
 import mysql.connector
 #from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
+import json
 
 
 class CommunityPlaylistBot(commands.Bot):
@@ -32,7 +36,7 @@ class CommunityPlaylistBot(commands.Bot):
         self.spotify_cid = kwargs.pop('spotify_cid', None)
         self.spotify_secret = kwargs.pop('spotify_secret', None)
 
-        self.ipc = ipc.Server(self, secret_key = "test")        
+        self.ipc = Server(self, secret_key = "test")        
 
         self.guild_data = []
         self.sp_cred_queue = []
@@ -85,8 +89,19 @@ class CommunityPlaylistBot(commands.Bot):
     async def on_ipc_error(self, endpoint, error):
         print(f"{endpoint} raised {error}")
 
+    @Server.route()
+    async def get_guild_data(self,data: ClientPayload) -> Dict:
+        out = []
+        for guild in self.guilds:
+            out.append(guild.id)
+        print(out)
+        out = json.dumps(out)
+        print(out)
+        return out
+
     
     async def setup_hook(self):
+        await self.ipc.start()
         for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
                 await self.load_extension(f'cogs.{filename[:-3]}')
@@ -99,7 +114,7 @@ class CommunityPlaylistBot(commands.Bot):
     #=============
     async def on_ready(self):
         logging.info(f'{self.user} has connected to Discord!')
-        self.ipc.start()
+        
         try:
             mydb = mysql.connector.connect(host = "localhost", user = self.sqluser, password = self.sqlpass, database = "discord")
             cursor = mydb.cursor()
@@ -308,7 +323,7 @@ class CommunityPlaylistBot(commands.Bot):
 
     def register_commands(self):
 
-        @self.ipc.route()
+        """@self.ipc.route()
         async def get_guild(data):
             guild = self.get_guild(data.guild_id)
             if guild is None: return None
@@ -330,81 +345,11 @@ class CommunityPlaylistBot(commands.Bot):
         
         @self.ipc.route()
         async def get_guild_count(data):
-            return len(self.guilds)
-
-        '''@self.command(brief='start watching specified channel')
-        async def enable(ctx):
-            id = ctx.message.guild.id
-            for index,i in enumerate(self.guild_data):
-                if (int(i[0]) == id):
-                    current_guild = i
-                    guild_index = index
-
-
-            if (self.guild_data[guild_index][4] == 0):
-                self.guild_data[guild_index][4] = 1
-                await ctx.channel.send(f"Enabled and monitoring for guild {self.guild_data[guild_index][1]}")
-            else:
-                await ctx.channel.send(f"Disabled and not monitoring for guild {self.guild_data[guild_index][1]}")
-                self.guild_data[guild_index][4] = 0
-
-            try:
-                mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
-                cursor = mydb.cursor()
-            except:
-                logging.error(f'error connecting to Mysql DB')
-
-            sql = "UPDATE guilds set enabled = %s where guild_id = %s"
-            val = (self.guild_data[guild_index][4], self.guild_data[guild_index][0])
-            cursor.execute(sql, val)
-            mydb.commit()
-            cursor.close()
-            mydb.close()'''
-
-
-        
-        """@self.command(brief='show playlist currently being added to')
-        async def get_playlist(ctx):
-            id = ctx.message.guild.id
-            for i in self.guild_data:
-                if (int(i[0]) == id):
-                    current_guild = i
-
-            if current_guild[6] == None:
-                await ctx.channel.send("No playlist setup to watch, please use the set_playlist command")
-                return
-
-            convert="spotify:playlist:" + current_guild[6]
-            output_link=self.URIconverter(convert)
-            await ctx.channel.send("I am currently adding songs to this playlist: " + output_link)"""
+            return len(self.guilds)"""
 
 
 
 
-        @self.command(brief='Set which text channel to watch for spotify links')
-        async def set_channel(ctx, *, channel_id):
-            id = ctx.message.guild.id
-            for index,i in enumerate(self.guild_data):
-                if (int(i[0]) == id):
-                    current_guild = i
-                    guild_index = index
-            
-            
-            logging.info(f"trying to set guild: {current_guild} channel id to {channel_id}")
-
-            self.guild_data[guild_index][3] = channel_id
-
-            try:
-                mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
-                cursor = mydb.cursor()
-            except:
-                logging.error(f'error connecting to Mysql DB')
-
-            sql = "UPDATE guilds set watch_channel = %s where guild_id = %s"
-            val = (channel_id, current_guild[0])
-            cursor.execute(sql, val)
-            mydb.commit()
-            await ctx.channel.send(f'I have set your watch channel to {self.guild_data[guild_index][3]}')
 
         @self.command(brief='Authenticate your Spotify Account to allow it to create/add to playlists')
         async def auth_me(ctx, *, name):
@@ -441,65 +386,6 @@ class CommunityPlaylistBot(commands.Bot):
             await ctx.channel.send(f"You are attempting to authenticate Spotify user {name}. Please visit this URL while logged into that account:\n {auth_url}")
             self.sp_cred_queue.append(name)
 
-        @self.command(brief='Choose the playlist to add to. Will create a new playlist if none exists or attach to an existing with the same name')
-        async def set_playlist(ctx , *, name):
-            id = ctx.message.guild.id
-            for index,i in enumerate(self.guild_data):
-                if (int(i[0]) == id):
-                    current_guild = i
-                    guild_index = index   
-            
-            duplicate = 0
-
-            if current_guild[2] == None:
-                await ctx.channel.send(" No spotify user set, did you use auth_me?")
-                return
-
-            try:
-                username = current_guild[2]
-                auth_manager=SpotifyOAuth(client_id=self.spotify_cid, client_secret=self.spotify_secret, redirect_uri=self.callbackurl, scope=self.spotify_scope, open_browser=True, show_dialog=True, username=username)
-                spotify = spotipy.Spotify(auth_manager=auth_manager)
-                logging.info(f'printing spotify current user: {spotify.current_user()}')
-            except:
-                await ctx.channel.send("failed to auth to Spotify. Did you use auth_me?")
-                return
-
-
-            playlists = spotify.user_playlists(username)
-            while playlists:
-                for i, playlist in enumerate(playlists['items']):
-                    if playlist['name'] == name:
-                        logging.info("playlist already exists in Spotify, will add to it")
-                        duplicate = 1
-                        self.guild_data[guild_index][6] = playlist['uri']
-                        self.guild_data[guild_index][5] = name
-                if playlists['next']:
-                    playlists = spotify.next(playlists)
-                else:
-                    playlists = None
-            
-            if duplicate == 0:
-                self.guild_data[guild_index][5] = name
-                spotify.user_playlist_create(username, name=self.guild_data[guild_index][5])
-                self.guild_data[guild_index][6] = self.GetPlaylistID(username, self.guild_data[guild_index][5], spotify)
-            await ctx.channel.send("Found or created a playlist named: " + str(self.guild_data[guild_index][5]) + " with id: " + str(self.guild_data[guild_index][6]))
-
-            self.guild_data[guild_index][5] = name
-
-            try:
-                mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
-                cursor = mydb.cursor()
-            except:
-                logging.error(f'error connecting to Mysql DB')
-
-            sql = "UPDATE guilds set playlist_name = %s, playlist_id = %s where guild_id = %s"
-            val = (name, self.guild_data[guild_index][6], current_guild[0])
-            try:
-                cursor.execute(sql, val)
-                mydb.commit()
-            except:
-                
-                logging.error("failed to write set_playlist to DB")
 
 
 
