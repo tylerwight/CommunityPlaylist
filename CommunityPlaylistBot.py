@@ -98,6 +98,24 @@ class CommunityPlaylistBot(commands.Bot):
         out = json.dumps(out)
         print(out)
         return out
+    
+    @Server.route()
+    async def get_gld(self,data: ClientPayload) -> Dict:
+        print(f"trying to get guild with this id: {data.guild_id}")
+        guild = self.get_guild(data.guild_id)
+        if guild is None: return None
+
+        print(f'this is the guild we got: {guild}')
+
+        out = {
+            "name": str(guild),
+            "id": str(guild.id),
+            "prefix" : "?"
+        }
+
+        out = json.dumps(out)
+        print(out)
+        return out
 
     
     async def setup_hook(self):

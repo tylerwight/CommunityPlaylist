@@ -8,6 +8,7 @@ from quart import Quart, render_template, request, session, redirect, url_for
 from quart_discord import DiscordOAuth2Session
 from quart import Quart
 from discord.ext.ipc.client import Client
+import json
 
 load_dotenv()
 
@@ -33,6 +34,11 @@ ipc_client = Client(secret_key = "test")
 ddiscord = DiscordOAuth2Session(app)
 
 
+def convert_ipc_response(ipc_response):
+	data = ipc_response.response
+	elements = data.replace("[", "").replace("]", "").split(",")
+	return [str(element) for element in elements]
+
 @app.route("/")
 async def home():
 	resp = await ipc_client.request("get_guild_data")
@@ -44,8 +50,8 @@ async def home():
 async def login():
 	return await ddiscord.create_session()
 
-@app.route("/callback")
-async def callback():
+@app.route("/callback_D")
+async def callback_D():
 	try:
 		await ddiscord.callback()
 	except Exception:
@@ -58,31 +64,54 @@ async def dashboard():
 	if not await ddiscord.authorized:
 		return redirect(url_for("login")) 
 
-	guild_count = await ipc_client.request("get_guild_count")
-	guild_ids = await ipc_client.request("get_guild_ids")
+	#guild_count = await ipc_client.request("get_guild_count")
+	guild_ids = await ipc_client.request("get_guild_data")
+	guild_ids = guild_ids.response
+	elements = guild_ids.replace("[", "").replace("]", "").split(",")
+	guild_ids = [str(element) for element in elements]
+	guild_count = len(guild_ids)
 
 	user_guilds = await ddiscord.fetch_guilds()
 
 	guilds = []
 
 	for guild in user_guilds:
-		if guild.permissions.administrator:			
-			guild.class_color = "green-border" if guild.id in guild_ids else "red-border"
+		if guild.permissions.administrator:		
+			guild.class_color = "green-border" if str(guild.id) in guild_ids else "red-border"
 			guilds.append(guild)
 
 	guilds.sort(key = lambda x: x.class_color == "red-border")
 	name = (await ddiscord.fetch_user()).name
 	return await render_template("dashboard.html", guild_count = guild_count, guilds = guilds, username=name)
 
+
+
 @app.route("/dashboard/<int:guild_id>")
 async def dashboard_server(guild_id):
 	if not await ddiscord.authorized:
 		return redirect(url_for("login")) 
+	
+	name = (await ddiscord.fetch_user()).name
 
-	guild = await ipc_client.request("get_guild", guild_id = guild_id)
-	if guild is None:
+	attempted_guild = await ipc_client.request("get_gld", guild_id = guild_id)
+	attempted_guild = json.loads(attempted_guild.response)
+	
+	if attempted_guild is None:
 		return redirect(f'https://discord.com/oauth2/authorize?&client_id={app.config["DISCORD_CLIENT_ID"]}&scope=bot&permissions=8&guild_id={guild_id}&response_type=code&redirect_uri={app.config["DISCORD_REDIRECT_URI"]}')
-	return guild["name"]
+	
+	user_guilds = await ddiscord.fetch_guilds()
+
+	for guild in user_guilds:
+		if guild.permissions.administrator:
+			if str(guild.id) == attempted_guild["id"]:
+				admin_okay = 1
+				final_guild = guild
+	
+	if admin_okay != 1:
+		return redirect(url_for('/'))
+	
+	
+	return await render_template("dashboard_specific.html", guild_name = attempted_guild["name"], guild_id = attempted_guild["id"], username=name, guild = final_guild)
 
 
 

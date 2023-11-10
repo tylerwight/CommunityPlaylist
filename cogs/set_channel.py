@@ -36,6 +36,7 @@ class set_channel(commands.Cog):
         cursor.execute(sql, val)
         mydb.commit()
         await ctx.channel.send(f'I have set your watch channel to {self.bot.guild_data[guild_index][3]}')
+        
 
 async def setup(bot):
     await bot.add_cog(set_channel(bot))
