@@ -55,9 +55,14 @@
 							<h2>Menu</h2>
 							<ul class="links">
 								<li><a href="{{url_for('home')}}">Home</a></li>
+								{% if authorized %}
 								<li><a href="{{url_for('dashboard')}}">Dashboard</a></li>
-								<li><a href="#">Log In</a></li>
-								<li><a href="#">Sign Up</a></li>
+								<li><a href="{{url_for('logout')}}">Logout</a></li>
+								{% else %}
+								<li><a href="/login">Log In</a></li>
+								{%endif %}
+								
+								
 							</ul>
 							<a href="#" class="close">Close</a>
 						</div>
@@ -68,13 +73,22 @@
 						<header>
 							<div class="inner">
 								<h2>Dashboard</h2>
-								<p>Hello, {{username}}! Please select a server below to get started. These are all the servers you are an administrator on</p>
+								<p>Hello, {{username}}! Below are all the servers that you have permissions to change. You need to be an administrator on that server to add or change this bot.</p>
+								<ol>
+									<li>Scroll down and pick the server you'd like to add or modify</li>
+									<li>Authenticate with Spotify and add the bot to your server</li>
+									<li>Go to the discord server and run these commands: </li>
+									<li><code>!set_playlist &lt;playlist name&gt;</code> If one already exists on your Spotify account it will use it, otherwise it will create it </li>
+									<li><code>!set_channel &lt;Text channelID number&gt;</code> you can get your channel id following <a href="https://turbofuture.com/internet/Discord-Channel-ID"><u>this guide</u></a>  </li>
+									<li><code>!enable</code>this will turn on and off the bot from actively watching for spotify links </li>
+									<li><code>!get_playlist</code> This one is just to check which playlist is currently being added to </li>
+								  </ol>
 							</div>
 						</header>
 
 						<!-- Content -->
 							<div class="wrapper">
-								<h2 style="text-align: center;">Servers you can add or edit:</h2>
+								<h2 style="text-align: center;">Pick a server to modify:</h2>
 								<div class="picker">
 								  <hr />
 								  <section class="cards">

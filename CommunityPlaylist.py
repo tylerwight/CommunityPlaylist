@@ -65,6 +65,8 @@ discord_cl_id = os.getenv('DISCORD_CLIENT_ID')
 discord_cl_secret = os.getenv('DISCORD_CLIENT_SECRET')
 discord_redirect_uri = os.getenv('DISCORD_CLIENT_REDIRECT_URL')
 add_bot_url = os.getenv('DISCORD_URL')
+spotify_scope = 'playlist-modify-public'
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -146,6 +148,7 @@ async def callback():
 async def dashboard():
 	if not await ddiscord.authorized:
 		return redirect(url_for("login")) 
+	authorized = await ddiscord.authorized
 	#guild_count = await ipc_client.request("get_guild_count")
 	guild_ids = await ipc_client.request("get_guild_data")
 	guild_ids = guild_ids.response
@@ -164,7 +167,7 @@ async def dashboard():
 
 	guilds.sort(key = lambda x: x.class_color == "red-border")
 	name = (await ddiscord.fetch_user()).name
-	return await render_template("dashboard.html", guild_count = guild_count, guilds = guilds, username=name)
+	return await render_template("dashboard.html", guild_count = guild_count, guilds = guilds, username=name, authorized=authorized)
 
 
 
@@ -172,7 +175,8 @@ async def dashboard():
 async def dashboard_server(guild_id):
 	if not await ddiscord.authorized:
 		return redirect(url_for("login")) 
-	
+	authorized = await ddiscord.authorized
+
 	name = (await ddiscord.fetch_user()).name
 	admin_okay = False
 	spot_auth = False
@@ -197,7 +201,8 @@ async def dashboard_server(guild_id):
 	print(f'admin_okay - {admin_okay}')
 	if admin_okay != True:
 		print(f"Admin check didn't work! How did we get to this URL? The previous page should have listed only servers you're an admin of")
-		return redirect(url_for('home'))
+		#return redirect(url_for('home'))
+		return ("Not Authorized")
 	
 
 
@@ -215,18 +220,19 @@ async def dashboard_server(guild_id):
 			print("NO CACHED TOKEN!")
 			spot_auth = False
 		
-	except:
+	except Exception as e:
 		print("=========AUTH FAILED!=============")
+		print(e)
 		spot_auth = False
 	
 	
-	return await render_template("dashboard_specific.html", username=name, guild = final_guild, installed = installed, spot_auth = spot_auth, add_bot_url = add_bot_url)
+	return await render_template("dashboard_specific.html", username=name, guild = final_guild, installed = installed, spot_auth = spot_auth, add_bot_url = add_bot_url, authorized=authorized)
 
 @app.route("/dashboard/<int:guild_id>/spotauth")
 async def dashboard_spotauth(guild_id):
 	if not await ddiscord.authorized:
 		return redirect(url_for("login")) 
-	
+
 	name = (await ddiscord.fetch_user()).name
 	admin_okay = False
 	attempted_guild = await ipc_client.request("get_gld", guild_id = guild_id)
@@ -250,8 +256,8 @@ async def dashboard_spotauth(guild_id):
 	print(f'admin_okay - {admin_okay}')
 	if admin_okay != True:
 		print(f"Admin check didn't work! How did we get to this URL? The previous page should have listed only servers you're an admin of")
-		return redirect(url_for('home'))
-	auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=spotify_scope, open_browser=False, show_dialog=True, username=username)
+		return ("Not Authorized")
+	auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=spotify_scope, open_browser=False, show_dialog=True)
 	auth_url = auth_manager.get_authorize_url()
 	session['acting_guild'] = guild_id
 	#return await render_template("dashboard_specific.html", username=name, guild = final_guild, installed = installed, spot_auth = False, add_bot_url = add_bot_url)
@@ -276,6 +282,6 @@ if __name__ == "__main__":
 	spotify_scope = 'playlist-modify-public'
 	username = 'test'
 
-	app.run(host='0.0.0.0', port=8080)
+	app.run(host='0.0.0.0', port=8080, ssl_context='adhoc')
 	
 

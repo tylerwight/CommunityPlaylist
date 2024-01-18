@@ -68,9 +68,14 @@
 							<h2>Menu</h2>
 							<ul class="links">
 								<li><a href="{{url_for('home')}}">Home</a></li>
+								{% if authorized %}
 								<li><a href="{{url_for('dashboard')}}">Dashboard</a></li>
-								<li><a href="#">Log In</a></li>
-								<li><a href="#">Sign Up</a></li>
+								<li><a href="{{url_for('logout')}}">Logout</a></li>
+								{% else %}
+								<li><a href="/login">Log In</a></li>
+								{%endif %}
+								
+								
 							</ul>
 							<a href="#" class="close">Close</a>
 						</div>

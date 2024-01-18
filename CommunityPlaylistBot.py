@@ -318,6 +318,8 @@ class CommunityPlaylistBot(commands.Bot):
                     print(spotify.me())
                 else:
                     print("NO CACHED TOKEN!")
+                    await channel_name.send(' Found a spotify link, but failed spotify authentication. Please login to the website and check that you are authenticated to Spotify?')
+                    return
 
                 #spotify = spotipy.Spotify(auth_manager=auth_manager)
                 logging.info("Trying to print spotify connection:")

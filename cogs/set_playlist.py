@@ -27,11 +27,29 @@ class set_playlist(commands.Cog):
 
         try:
             username = current_guild[2]
-            auth_manager=SpotifyOAuth(client_id=self.bot.spotify_cid, client_secret=self.bot.spotify_secret, redirect_uri=self.bot.callbackurl, scope=self.bot.spotify_scope, open_browser=True, show_dialog=True, username=username)
-            spotify = spotipy.Spotify(auth_manager=auth_manager)
+            print(username)
+
+
+            #auth_manager=SpotifyOAuth(client_id=self.bot.spotify_cid, client_secret=self.bot.spotify_secret, redirect_uri=self.bot.callbackurl, scope=self.bot.spotify_scope, open_browser=True, show_dialog=True, username=username)
+            
+            cache_handler = spotipy.cache_handler.CacheFileHandler(username=current_guild[0])
+            auth_manager=SpotifyOAuth(client_id=self.bot.spotify_cid, client_secret=self.bot.spotify_secret, redirect_uri=self.bot.callbackurl, scope=self.bot.spotify_scope, cache_handler=cache_handler)
+            if not cache_handler.get_cached_token() == None:
+                print("Found cached token")
+                spotify = spotipy.Spotify(auth_manager=auth_manager)
+                print(spotify.me())
+            else:
+                print("NO CACHED TOKEN!")
+                await ctx.channel.send('failed spotify authentication. Please login to the website and check that you are authenticated to Spotify?')
+                return
+            
+            print("SPOTIFY CURRENT USER")
+            print(spotify.current_user()["display_name"])
+            #username = spotify.current_user()["display_name"]
+            username = spotify.current_user()["id"]
             logging.info(f'printing spotify current user: {spotify.current_user()}')
         except Exception as e:
-            await ctx.channel.send("failed to auth to Spotify. Did you use auth_me?")
+            await ctx.channel.send("failed spotify authentication. Please login to the website and check that you are authenticated to Spotify?")
             logging.error(e)
             return
 
