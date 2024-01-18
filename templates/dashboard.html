@@ -6,12 +6,35 @@
 -->
 <html>
 	<head>
-		<title>Generic - Solid State by HTML5 UP</title>
+		<title>Dashboard - CommunityPlaylist</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<!-- <link rel="stylesheet" href="static/assets/css/main.css" /> -->
 		<link rel="stylesheet" href="{{ url_for( 'static', filename = 'assets/css/main.css') }}" />
 		<noscript><link rel="stylesheet" href="{{ url_for( 'static', filename = 'assets/css/noscript.css') }}" /></noscript>
+		<style>
+			.cards {
+			  display: grid;
+			  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+			  gap: 20px;
+			}
+		  
+			.card {
+			  text-align: center;
+			}
+
+			.card a {
+    			text-decoration: none;
+  			}
+		  
+			.card img {
+			  max-width: 100%;
+			  height: auto;
+			  border: 0;
+			}
+		  </style>
+
+
 	</head>
 	<body class="is-preload">
 
@@ -19,8 +42,8 @@
 			<div id="page-wrapper">
 
 				<!-- Header -->
-					<header id="header">
-						<h1><a href="index.html">Solid State</a></h1>
+						<header id="header">
+						<h1>{{username}}</h1>
 						<nav>
 							<a href="#menu">Menu</a>
 						</nav>
@@ -31,9 +54,8 @@
 						<div class="inner">
 							<h2>Menu</h2>
 							<ul class="links">
-								<li><a href="./">Home</a></li>
-								<li><a href="generic.html">Generic</a></li>
-								<li><a href="elements.html">Elements</a></li>
+								<li><a href="{{url_for('home')}}">Home</a></li>
+								<li><a href="{{url_for('dashboard')}}">Dashboard</a></li>
 								<li><a href="#">Log In</a></li>
 								<li><a href="#">Sign Up</a></li>
 							</ul>
@@ -46,13 +68,13 @@
 						<header>
 							<div class="inner">
 								<h2>Dashboard</h2>
-								<p>Hello, {{username}}! Please select a server to get started</p>
+								<p>Hello, {{username}}! Please select a server below to get started. These are all the servers you are an administrator on</p>
 							</div>
 						</header>
 
 						<!-- Content -->
 							<div class="wrapper">
-								<h2>The Bot is in: {{guild_count}} servers</h2>
+								<h2 style="text-align: center;">Servers you can add or edit:</h2>
 								<div class="picker">
 								  <hr />
 								  <section class="cards">
@@ -81,41 +103,8 @@
 				<!-- Footer -->
 					<section id="footer">
 						<div class="inner">
-							<h2 class="major">Get in touch</h2>
-							<p>Cras mattis ante fermentum, malesuada neque vitae, eleifend erat. Phasellus non pulvinar erat. Fusce tincidunt, nisl eget mattis egestas, purus ipsum consequat orci, sit amet lobortis lorem lacus in tellus. Sed ac elementum arcu. Quisque placerat auctor laoreet.</p>
-							<form method="post" action="#">
-								<div class="fields">
-									<div class="field">
-										<label for="name">Name</label>
-										<input type="text" name="name" id="name" />
-									</div>
-									<div class="field">
-										<label for="email">Email</label>
-										<input type="email" name="email" id="email" />
-									</div>
-									<div class="field">
-										<label for="message">Message</label>
-										<textarea name="message" id="message" rows="4"></textarea>
-									</div>
-								</div>
-								<ul class="actions">
-									<li><input type="submit" value="Send Message" /></li>
-								</ul>
-							</form>
-							<ul class="contact">
-								<li class="icon solid fa-home">
-									Untitled Inc<br />
-									1234 Somewhere Road Suite #2894<br />
-									Nashville, TN 00000-0000
-								</li>
-								<li class="icon solid fa-phone">(000) 000-0000</li>
-								<li class="icon solid fa-envelope"><a href="#">information@untitled.tld</a></li>
-								<li class="icon brands fa-twitter"><a href="#">twitter.com/untitled-tld</a></li>
-								<li class="icon brands fa-facebook-f"><a href="#">facebook.com/untitled-tld</a></li>
-								<li class="icon brands fa-instagram"><a href="#">instagram.com/untitled-tld</a></li>
-							</ul>
 							<ul class="copyright">
-								<li>&copy; Untitled Inc. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+								<li>&copy; Tyler Wight</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
 							</ul>
 						</div>
 					</section>

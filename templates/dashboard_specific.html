@@ -6,11 +6,48 @@
 -->
 <html>
 	<head>
-		<title>Generic - Solid State by HTML5 UP</title>
+		<title>Dashboard - CommunityPlaylist</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="{{ url_for( 'static', filename = 'assets/css/main.css') }}" />
 		<noscript><link rel="stylesheet" href="{{ url_for( 'static', filename = 'assets/css/noscript.css') }}" /></noscript>
+<!--
+		<style>
+			.cards {
+			  display: grid;
+			  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+			  gap: 20px;
+			}
+		  
+			.card {
+			  text-align: center;
+			}
+
+			.card a {
+    			text-decoration: none;
+  			}
+		  
+			.card img {
+			  max-width: 100%;
+			  height: auto;
+			  border: 0;
+			}
+
+			.container {
+			display: flex;
+			justify-content: space-between;
+			}
+
+			.left-heading {
+			margin: 0; /* Remove default margin */
+			text-align: left;
+			}
+			.right-heading {
+			margin: 0; /* Remove default margin */
+			text-align: right;
+			}
+		  </style>
+-->
 	</head>
 	<body class="is-preload">
 
@@ -18,8 +55,8 @@
 			<div id="page-wrapper">
 
 				<!-- Header -->
-					<header id="header">
-						<h1><a href="index.html">Solid State</a></h1>
+						<header id="header">
+						<h1>{{username}}</h1>
 						<nav>
 							<a href="#menu">Menu</a>
 						</nav>
@@ -30,9 +67,8 @@
 						<div class="inner">
 							<h2>Menu</h2>
 							<ul class="links">
-								<li><a href="./">Home</a></li>
-								<li><a href="generic.html">Generic</a></li>
-								<li><a href="elements.html">Elements</a></li>
+								<li><a href="{{url_for('home')}}">Home</a></li>
+								<li><a href="{{url_for('dashboard')}}">Dashboard</a></li>
 								<li><a href="#">Log In</a></li>
 								<li><a href="#">Sign Up</a></li>
 							</ul>
@@ -51,11 +87,11 @@
 
 						<!-- Content -->
 							<div class="wrapper">
-								<div class="picker">
+								<div class="picker" style="display: block; margin: 0 auto; text-align: center;">
 								  <hr />
-								  <section class="cards">
+								  <section class="cards" style="display: block; margin: 0 auto; text-align: center;">
 									<div class="card">
-									  <a href="/dashboard/{{guild.id}}">
+									  <a href="/dashboard/{{guild.id}}" >
 										{% if guild.icon_url is not none %}
 										<img src="{{guild.icon_url}}"/>
 										{% else %}
@@ -69,59 +105,72 @@
 								</div>
 							</div>
 
-					</section>
+						<!-- One -->
+						<section id="one" class="wrapper spotlight style1">
+							<div class="inner">
+								{% if installed %}
+								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" /></a>
+								{% else %}
+								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" /></a>
+								{% endif %}
+								<div class="content">
+									<h2 class="major">Bot status</h2>
+									{% if installed %}
+									<p>CommunityPlaylist bot is a member of this server</p>
+									{% else %}
+									<p>CommunityPlaylist bot is not a member of this server</p>
+									<a href="{{add_bot_url}}" class="special">Add to Server</a>
+									{% endif %}
+								</div>
+							</div>
+						</section>
+
+						<!-- Two -->
+						<section id="two" class="wrapper alt spotlight style2">
+							<div class="inner">
+								{% if spot_auth %}
+								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" /></a>
+								{% else %}
+								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" /></a>
+								{% endif %}
+								<div class="content">
+									<h2 class="major">Spotify Authentication</h2>
+									<p>Has Spotify Authentication: {{spot_auth}}</p>
+									{% if not spot_auth %}
+									<a href="/dashboard/{{guild.id}}/spotauth" class="special">Add a Spotify account to this server</a>
+									{% else %}
+									<a href="#" class="special">Disconnect Spotify account</a>
+									{% endif %}
+								</div>
+							</div>
+						</section>
+
+
+
+
+
+
+
 
 				<!-- Footer -->
-					<section id="footer">
-						<div class="inner">
-							<h2 class="major">Get in touch</h2>
-							<p>Cras mattis ante fermentum, malesuada neque vitae, eleifend erat. Phasellus non pulvinar erat. Fusce tincidunt, nisl eget mattis egestas, purus ipsum consequat orci, sit amet lobortis lorem lacus in tellus. Sed ac elementum arcu. Quisque placerat auctor laoreet.</p>
-							<form method="post" action="#">
-								<div class="fields">
-									<div class="field">
-										<label for="name">Name</label>
-										<input type="text" name="name" id="name" />
-									</div>
-									<div class="field">
-										<label for="email">Email</label>
-										<input type="email" name="email" id="email" />
-									</div>
-									<div class="field">
-										<label for="message">Message</label>
-										<textarea name="message" id="message" rows="4"></textarea>
-									</div>
-								</div>
-								<ul class="actions">
-									<li><input type="submit" value="Send Message" /></li>
-								</ul>
-							</form>
-							<ul class="contact">
-								<li class="icon solid fa-home">
-									Untitled Inc<br />
-									1234 Somewhere Road Suite #2894<br />
-									Nashville, TN 00000-0000
-								</li>
-								<li class="icon solid fa-phone">(000) 000-0000</li>
-								<li class="icon solid fa-envelope"><a href="#">information@untitled.tld</a></li>
-								<li class="icon brands fa-twitter"><a href="#">twitter.com/untitled-tld</a></li>
-								<li class="icon brands fa-facebook-f"><a href="#">facebook.com/untitled-tld</a></li>
-								<li class="icon brands fa-instagram"><a href="#">instagram.com/untitled-tld</a></li>
-							</ul>
-							<ul class="copyright">
-								<li>&copy; Untitled Inc. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
-							</ul>
-						</div>
-					</section>
+				<section id="footer">
+					<div class="inner">
+						<ul class="copyright">
+							<li>&copy; Tyler Wight</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+						</ul>
+					</div>
+				</section>
+
 
 			</div>
 
 		<!-- Scripts -->
-			<script src="static/assets/js/jquery.min.js"></script>
-			<script src="static/assets/js/jquery.scrollex.min.js"></script>
-			<script src="static/assets/js/browser.min.js"></script>
-			<script src="static/assets/js/breakpoints.min.js"></script>
-			<script src="static/assets/js/util.js"></script>
-			<script src="static/assets/js/main.js"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/jquery.min.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/jquery.scrollex.min.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/browser.min.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/breakpoints.min.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/util.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/main.js') }}"></script>
 
 	</body>
 </html>

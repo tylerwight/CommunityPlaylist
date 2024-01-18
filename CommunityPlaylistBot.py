@@ -103,6 +103,7 @@ class CommunityPlaylistBot(commands.Bot):
     async def get_gld(self,data: ClientPayload) -> Dict:
         print(f"trying to get guild with this id: {data.guild_id}")
         guild = self.get_guild(data.guild_id)
+        
         if guild is None: return None
 
         print(f'this is the guild we got: {guild}')
@@ -306,12 +307,23 @@ class CommunityPlaylistBot(commands.Bot):
             
             #try to auth to spotify
             try:
-                auth_manager=SpotifyOAuth(client_id=self.spotify_cid, client_secret=self.spotify_secret, redirect_uri=self.callbackurl, scope=self.spotify_scope, open_browser=True, show_dialog=True, username=username)
-                spotify = spotipy.Spotify(auth_manager=auth_manager)
+                cache_handler = spotipy.cache_handler.CacheFileHandler(username=current_guild[0])
+                auth_manager=SpotifyOAuth(client_id=self.spotify_cid, client_secret=self.spotify_secret, redirect_uri=self.callbackurl, scope=self.spotify_scope, cache_handler=cache_handler)
+
+                #auth_manager=SpotifyOAuth(client_id=self.spotify_cid, client_secret=self.spotify_secret, redirect_uri=self.callbackurl, scope=self.spotify_scope, open_browser=True, show_dialog=True,cache_handler=cache_handler)
+                
+                if not cache_handler.get_cached_token() == None:
+                    print("Found cached token")
+                    spotify = spotipy.Spotify(auth_manager=auth_manager)
+                    print(spotify.me())
+                else:
+                    print("NO CACHED TOKEN!")
+
+                #spotify = spotipy.Spotify(auth_manager=auth_manager)
                 logging.info("Trying to print spotify connection:")
                 logging.info(spotify.current_user())
             except:
-                await channel_name.send(' Found a spotify link, but failed spotify authentication. Did you use auth_me command?')
+                await channel_name.send(' Found a spotify link, but failed spotify authentication. Please login to the website and check that you are authenticated to Spotify?')
                 logging.error("Could not authenticate to spotify")
                 return
 
