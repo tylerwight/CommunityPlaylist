@@ -174,7 +174,7 @@ class CommunityPlaylistBot(commands.Bot):
 
                 logging.info(f'I inserted {cursor.rowcount} rows using {guild.id} and {guild}')
 
-                item = [str(guild.id), str(guild), None, None, 0, None, None]
+                item = [str(guild.id), str(guild), "tmp", None, 0, None, None]
 
                 self.guild_data.append(item)
 
@@ -237,7 +237,7 @@ class CommunityPlaylistBot(commands.Bot):
 
             logging.info(f'I inserted {cursor.rowcount} rows using {guild.id} and {guild}')
 
-            item = [str(guild.id), str(guild), None, None, 0, None, None]
+            item = [str(guild.id), str(guild), 'tmp', None, 0, None, None]
             self.guild_data.append(item)
         
         if (duplicate > 1):
