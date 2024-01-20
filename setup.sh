@@ -12,6 +12,8 @@ pip install Flask-WTF
 pip install quart
 pip install quart_discord
 pip install better-ipc
+pip install asyncio
+pip install nest_asyncio
 
 sudo apt install mysql-server
 sudo systemctl start mysql.service

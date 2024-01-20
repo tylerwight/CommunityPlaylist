@@ -167,8 +167,8 @@ class CommunityPlaylistBot(commands.Bot):
             if (duplicate == 0):
                 logging.info("New Guild detected, adding to DB")
 
-                sql = "INSERT INTO guilds (guild_id,name,enabled) VALUES (%s, %s, %s)"
-                val = (str(guild.id),str(guild), 0)
+                sql = "INSERT INTO guilds (guild_id,name,enabled, spotipy_username) VALUES (%s, %s, %s, %s)"
+                val = (str(guild.id),str(guild), 0, "tmp")
                 cursor.execute(sql, val)
                 mydb.commit()
 
