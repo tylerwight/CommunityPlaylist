@@ -2410,7 +2410,10 @@ input, select, textarea {
 		}
 
 /* Image */
-
+	.bordered-image {
+		border: 2px solid #26455f; /* Adjust the color and size as needed */
+		border-radius: 5px; /* Optional: Add border-radius for rounded corners */
+	}
 	.image {
 		border-radius: 5px;
 		border: 0;
@@ -3458,7 +3461,31 @@ input, select, textarea {
 			font-weight: 200;
 			letter-spacing: 0.1em;
 			line-height: 2;
-			text-transform: uppercase;
+		}
+
+		#banner ol {
+			-moz-transition: opacity 0.5s ease, -moz-transform 0.5s ease, -moz-filter 0.25s ease;
+			-webkit-transition: opacity 0.5s ease, -webkit-transform 0.5s ease, -webkit-filter 0.25s ease;
+			-ms-transition: opacity 0.5s ease, -ms-transform 0.5s ease, -ms-filter 0.25s ease;
+			transition: opacity 0.5s ease, transform 0.5s ease, filter 0.25s ease;
+			-moz-transform: translateX(0);
+			-webkit-transform: translateX(0);
+			-ms-transform: translateX(0);
+			transform: translateX(0);
+			-moz-transition-delay: 0.8s;
+			-webkit-transition-delay: 0.8s;
+			-ms-transition-delay: 0.8s;
+			transition-delay: 0.8s;
+			-moz-filter: blur(0);
+			-webkit-filter: blur(0);
+			-ms-filter: blur(0);
+			filter: blur(0);
+			opacity: 1;
+			font-family: Raleway, Helvetica, sans-serif;
+			font-size: 0.75em;
+			font-weight: 200;
+			letter-spacing: 0.1em;
+			line-height: 2;
 		}
 
 		@media screen and (max-width: 1280px) {
@@ -3546,10 +3573,23 @@ input, select, textarea {
 			filter: blur(2px);
 		}
 
+		body.is-preload #banner ol {
+			opacity: 0;
+			-moz-transform: translateX(0.5em);
+			-webkit-transform: translateX(0.5em);
+			-ms-transform: translateX(0.5em);
+			transform: translateX(0.5em);
+			-moz-filter: blur(2px);
+			-webkit-filter: blur(2px);
+			-ms-filter: blur(2px);
+			filter: blur(2px);
+		}
+
 /* Wrapper */
 
 	#wrapper > header {
-		padding: 11em 0 2.25em 0 ;
+		/*padding: 11em 0 2.25em 0 ;*/
+		padding: 5.5em 0 1.115em 0 ;
 	}
 
 		#wrapper > header .inner {
@@ -3560,7 +3600,7 @@ input, select, textarea {
 		#wrapper > header h2 {
 			border-bottom: solid 2px rgba(255, 255, 255, 0.125);
 			font-size: 2em;
-			margin-bottom: 0.8em;
+			margin-bottom: 0.4em;
 			padding-bottom: 0.4em;
 		}
 
@@ -3570,7 +3610,6 @@ input, select, textarea {
 			font-weight: 200;
 			letter-spacing: 0.1em;
 			line-height: 2;
-			text-transform: uppercase;
 		}
 
 	@media screen and (max-width: 1280px) {

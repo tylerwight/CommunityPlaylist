@@ -21,7 +21,7 @@
 					<!---->
 						{% if authorized %}
 						<header id="header">
-						<h1>{{username}}</h1>
+						<h1>CommunityPlaylist</h1>
 						{% else %}
 						<header id="header" class="alt">
 						<h1>CommunityPlaylist</h1>
@@ -37,7 +37,6 @@
 							<h2>Menu</h2>
 							<ul class="links">
 								<li><a href="{{url_for('home')}}">Home</a></li>
-								<li><a href="{{url_for('instructions')}}">Instructions</a></li>
 								{% if authorized %}
 								<li><a href="{{url_for('dashboard')}}">Dashboard</a></li>
 								<li><a href="{{url_for('logout')}}">Logout</a></li>
@@ -54,20 +53,22 @@
 				<!-- Banner -->
 					<section id="banner">
 						<div class="inner">
-							<div class="logo">
-								<img class="icon" src="{{ url_for( 'static', filename = 'images/Discord_icon.png') }}" alt="" />
-								<img class="icon align-right" src="{{ url_for( 'static', filename = 'images/Spotify_icon.png') }}" alt="" />
+							<div class="inner">
+								<h2>Instructions</h2>
+								<p>
+								<ol>
+									<li>Login to this website and then go to your dashboard</li>
+									<li>Pick a server you would like to use CommunityPlaylist on (you must be an admin)</li>
+									<li>Under Bot Status click "Add to Server" button. Refresh and make sure Bot Status is now green</li>
+									<li>Under Spotify Status click "Add Spotify Account", ensure Spotify Status is now green </li>
+									<li>Go to the discord server and run these commands: </li>
+									<li><code>!set_playlist &lt;playlist name&gt;</code> Choose a playlist to add to. If one already exists on your Spotify account it will use it, otherwise it will create it </li>
+									<li><code>!set_channel &lt;Text channelID number&gt;</code> Choose which text channel to monitor for spotify links. You can get your channel id following <a href="https://turbofuture.com/internet/Discord-Channel-ID"><u>this guide</u></a>  </li>
+									<li><code>!enable</code> Enable the bot. By default it is disabled. This will toggle bot from actively watching for spotify links or not </li>
+									<li><code>!get_playlist</code> Use this command to check which playlist the bot is adding to </li>
+								  </ol>
+								</p>
 							</div>
-							<h2>CommunityPlaylist</h2>
-							<p>A Discord bot that monitors your discord server for Spotify links and creates a running playist of the music. </p>
-							<p align="center">
-								{% if not authorized %}
-								<a href="/login" class="button">Login with discord</a>
-								{% else %}
-								<a href="/dashboard" class="button">Open Dashboard</a>
-								{%endif %}
-								<a href="/instructions" class="button">Read Instructions</a>
-							</p>
 						</div>
 					</section>
 
@@ -78,9 +79,9 @@
 								<div class="inner">
 									<a href="#" class="image"><img src="images/pic01.jpg" alt="" /></a>
 									<div class="content">
-										<h2 class="major">Create a running community playlist </h2>
-										<p>CommunityPlaylist will watch a specific text channel for any spotify links. When it sees one it will add it to a Spotify Playlist of your choosing!</p>
-										<img class="bordered-image" src="{{ url_for( 'static', filename = 'images/chat_log.png') }}" alt="" />
+										<h2 class="major">Status Example</h2>
+										<p>First ensure all status are green</p>
+										<img class="bordered-image" src="{{ url_for( 'static', filename = 'images/status_example.png') }}" alt="" width="600" height="420" />
 									</div>
 								</div>
 							</section>
@@ -89,8 +90,9 @@
 							<div class="inner">
 								<a href="#" class="image"><img src="images/pic02.jpg" alt="" /></a>
 								<div class="content">
-									<h2 class="major">Spotify Playlist</h2>
-									<img class="bordered-image" src="{{ url_for( 'static', filename = 'images/playlist.png') }}" alt="" />
+									<h2 class="major">Commands example</h2>
+									<p>After ensuring all status are green on the website, here is an example of setting up the bot.</p>
+									<img class="bordered-image" src="{{ url_for( 'static', filename = 'images/commands.png') }}" alt="" />
 								</div>
 							</div>
 						</section>

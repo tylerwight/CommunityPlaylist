@@ -346,8 +346,8 @@ class CommunityPlaylistBot(commands.Bot):
 
             logging.info(f"attempting to add song to playlist id {current_guild[6]}")
             spotify.user_playlist_add_tracks(username, current_guild[6], extracted )
-
-            await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + current_guild[6] + ': ' + "<" + self.URIconverter("spotify:playlist:" + current_guild[6]) + ">")
+            await channel_name.send(f"I have added the song {resulttrack} by {resultartist} to this playlist: <{self.URIconverter('spotify:playlist:' + current_guild[6])}>")
+            #await channel_name.send('I have added song ' + resulttrack + ' by ' + resultartist + ' to the playlist ' + current_guild[6] + ': ' + "<" + self.URIconverter("spotify:playlist:" + current_guild[6]) + ">")
 
 
 

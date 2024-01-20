@@ -68,6 +68,7 @@
 							<h2>Menu</h2>
 							<ul class="links">
 								<li><a href="{{url_for('home')}}">Home</a></li>
+								<li><a href="{{url_for('instructions')}}">Instructions</a></li>
 								{% if authorized %}
 								<li><a href="{{url_for('dashboard')}}">Dashboard</a></li>
 								<li><a href="{{url_for('logout')}}">Logout</a></li>
@@ -85,16 +86,10 @@
 					<section id="wrapper">
 						<header>
 							<div class="inner">
-								<h2>Dashboard</h2>
+								<h2>{{guild.name}}</h2>
 								<p>Hello, {{username}}! You are editing the settings for the Guild {{guild.name}} </p>
-							</div>
-						</header>
 
-						<!-- Content -->
-							<div class="wrapper">
-								<div class="picker" style="display: block; margin: 0 auto; text-align: center;">
-								  <hr />
-								  <section class="cards" style="display: block; margin: 0 auto; text-align: center;">
+								<section class="cards" style="display: flex; flex-wrap: wrap; justify-content: right;">
 									<div class="card">
 									  <a href="/dashboard/{{guild.id}}" >
 										{% if guild.icon_url is not none %}
@@ -107,8 +102,10 @@
 									  {{ guild.name }}
 									</div>
 								  </section>
-								</div>
+
+								<a href="/dashboard" class="button">Back to Dashboard</a>
 							</div>
+						</header>
 
 						<!-- One -->
 						<section id="one" class="wrapper spotlight style1">
@@ -119,12 +116,12 @@
 								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" /></a>
 								{% endif %}
 								<div class="content">
-									<h2 class="major">Bot status</h2>
+									<h2 class="major">Bot Status</h2>
 									{% if installed %}
 									<p>CommunityPlaylist bot is a member of this server</p>
 									{% else %}
 									<p>CommunityPlaylist bot is not a member of this server</p>
-									<a target="_blank" rel="noopener noreferrer" href="{{add_bot_url}}" class="special">Add to Server</a>
+									<a target="_blank" rel="noopener noreferrer" href="{{add_bot_url}}" class="button">Add to Server</a>
 									{% endif %}
 								</div>
 							</div>
@@ -139,12 +136,14 @@
 								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" /></a>
 								{% endif %}
 								<div class="content">
-									<h2 class="major">Spotify Authentication</h2>
-									<p>Has Spotify Authentication: {{spot_auth}}</p>
+									<h2 class="major">Spotify Status</h2>
+									
 									{% if not spot_auth %}
-									<a href="/dashboard/{{guild.id}}/spotauth" class="special">Add a Spotify account to this server</a>
+									<p>This server does not have working Spotify Authentication</p>
+									<a href="/dashboard/{{guild.id}}/spotauth" class="button">Add a Spotify account to this server</a>
 									{% else %}
-									<a href="#" class="special">Disconnect Spotify account</a>
+									<p>Spotify Authentication working!</p>
+									<a href="/dashboard/{{guild.id}}/spotdc" class="button">Disconnect Spotify account</a>
 									{% endif %}
 								</div>
 							</div>

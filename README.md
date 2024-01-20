@@ -1,7 +1,25 @@
-# SpotWatcher
-A discord bot that will watch a specified discord channel for new spotify links when posted, and add them to a playlist on the fly. This bot supports having multiple separate discord servers. Keeps track of it's state in a mysql database and picks up where it left off on startup.
+# CommunityPlaylist
+A Discord bot that monitors your discord server for Spotify links and creates a running playist of the music. 
+A frontend for said discord bot to manage bot status, setup, and authentication
+
+This bot supports having multiple separate discord servers. Keeps track of it's state in a mysql database and picks up where it left off on startup.
 
 
+
+
+## TODO:
+- [x] Add web frontent to manage authentication
+- [x] Use discord.py's Cogs for commands
+- [x] sql connection
+- [ ] clean up sql code and architecture
+- [x] steamline spotify authentication (using web frontend)
+- [ ] add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
+- [ ] update to discords built in command prefix stuff
+- [ ] Write new HOW-TO section for the major updates
+
+
+
+# OLD HOW-TO THIS IS LEGACY AND LIKELY DOESN'T APPPLY
 
 ## How to Install:
 
@@ -56,12 +74,3 @@ note: default command prefix is "_" so be defualt to run the auth_me command wil
 - get_playlist                  - Displays the spotify playlist currently in use for adding songs.
 - set_channel <channel ID>      - Set/change the channel ID of the channel you want the bot to monitor
 - set_playlist <playlist_name>  - Set/change the spotify playlist to use for adding songs. If it finds an existing playlist it will add to it, otherwise it will create a new one.
-
-
-## TODO:
-- add web frontend back in
-- Use discord.py's Cogs for commands
-- sql connection and spotify auth methods (reduce duplication)
-- steamline spotify authentication (using web frontend)
-- add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
-- update to discords build in command prefix stuff
