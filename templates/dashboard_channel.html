@@ -1,0 +1,151 @@
+<!DOCTYPE HTML>
+<!--
+	Solid State by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Dashboard - CommunityPlaylist</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="{{ url_for( 'static', filename = 'assets/css/main.css') }}" />
+		<noscript><link rel="stylesheet" href="{{ url_for( 'static', filename = 'assets/css/noscript.css') }}" /></noscript>
+
+	</head>
+	<body class="is-preload">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header  -->
+					<!---->
+					{% if authorized %}
+					<header id="header">
+					<h1>
+						<a href="{{url_for('home')}}"><img class="icon" style="width: 2.5em; height: auto; top: 12px;" src="{{ url_for( 'static', filename = 'images/main_logo.png') }}" alt="" /></a>
+						CommunityPlaylist - {{username}}
+					</h1>
+					{% else %}
+					<header id="header" class="alt">
+					<h1>CommunityPlaylist</h1>
+					{%endif %}
+					
+					
+					<nav>
+						<a href="#menu">Menu</a>
+					</nav>
+				</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<div class="inner">
+							<h2>Menu</h2>
+							<ul class="links">
+								<li><a href="{{url_for('home')}}">Home</a></li>
+								<li><a href="{{url_for('instructions')}}">Instructions</a></li>
+								{% if authorized %}
+								<li><a href="{{url_for('dashboard')}}">Dashboard</a></li>
+								<li><a href="{{url_for('logout')}}">Logout</a></li>
+								{% else %}
+								<li><a href="/login">Log In</a></li>
+								{%endif %}
+								
+								
+							</ul>
+							<a href="#" class="close">Close</a>
+						</div>
+					</nav>
+
+				<!-- Wrapper -->
+				<section id="wrapper">
+					<header>
+						<div class="inner">
+							<h2 style="display: flex; justify-content: space-between; align-items: center;">
+								<a href="/dashboard/{{guild.id}}" class="special2"></a>
+								{{guild.name}}
+								<section class="cards">
+									<div class="card">
+										<a href="/dashboard/{{guild.id}}">
+											{% if guild.icon_url is not none %}
+												<img src="{{guild.icon_url}}" style="margin-left: auto;"/>
+											{% else %}
+												<img src="https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png" style="margin-left: auto;"/>
+											{% endif %}
+										</a>
+									</div>
+								</section>
+							</h2>
+							<p>Please pick the text channel you would like to monitor. </p> 
+								
+							
+								<ul style="list-style-type: none;">
+									<li>
+									  <label for="current">Current Channel:</label>
+									  <p style="font-size: 1.3em;">
+										{{ current_channel }}
+									</p>
+									
+
+									</li>
+									<li>
+									<label for="setting3">New Channel:</label>
+									  <select id="setting3" name="setting3">
+										{% if channel_names is not none%}
+											{% for channel_name in channel_names %}
+												<option value="{{channel_name[0]}}">{{ channel_name[1] }}</option>
+											{% endfor %}
+										{% else %}
+											<option value="option">None</option>
+											{% endif %}
+									  </select>
+									  <p></p>
+									  <a id="apply-button" style="justify-content: right; text-align: center;" href="#" class="button">Apply</a>
+									</li>
+
+									<!-- Add more settings as needed -->
+								  </ul>
+
+							</div>
+						</header>
+
+				<!-- Footer -->
+				<section id="footer">
+					<div class="inner">
+						<ul class="copyright">
+							<li>&copy; Tyler Wight</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+						</ul>
+					</div>
+				</section>
+
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="{{ url_for( 'static', filename = 'assets/js/jquery.min.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/jquery.scrollex.min.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/browser.min.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/breakpoints.min.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/util.js') }}"></script>
+			<script src="{{ url_for( 'static', filename = 'assets/js/main.js') }}"></script>
+
+			<script>
+				// Get references to the select and apply button elements
+				const selectElement = document.getElementById("setting3");
+				const applyButton = document.getElementById("apply-button");
+			  
+				// Add an event listener to the select element
+				selectElement.addEventListener("change", function() {
+				  // Get the selected option's value
+				  const selectedOptionValue = selectElement.value;
+			  
+				  // Construct the URL based on the selected option value
+				  const guildId = "{{ guild.id }}";
+				  const channelUrl = `/dashboard/${guildId}/channel/${selectedOptionValue}`;
+			  
+				  // Set the href attribute of the apply button to the constructed URL
+				  applyButton.href = channelUrl;
+				});
+			  </script>
+	</body>
+</html>

@@ -237,6 +237,59 @@ input, select, textarea {
 				background-color: rgba(255, 255, 255, 0.075);
 			}
 
+/*-----------------*/
+a.special2:not(.button) {
+	text-decoration: none;
+	border-bottom: 0;
+	display: block;
+	font-family: Raleway, Helvetica, sans-serif;
+	font-size: 0.8em;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	margin: 0 0 2em 0;
+	text-transform: uppercase;
+}
+
+	a.special2:not(.button):before {
+		-moz-osx-font-smoothing: grayscale;
+		-webkit-font-smoothing: antialiased;
+		display: inline-block;
+		font-style: normal;
+		font-variant: normal;
+		text-rendering: auto;
+		line-height: 1;
+		text-transform: none !important;
+		font-family: 'Font Awesome 5 Free';
+		font-weight: 900;
+	}
+
+	a.special2:not(.button):before {
+		-moz-transition: background-color 0.2s ease-in-out;
+		-webkit-transition: background-color 0.2s ease-in-out;
+		-ms-transition: background-color 0.2s ease-in-out;
+		transition: background-color 0.2s ease-in-out;
+		border-radius: 100%;
+		border: solid 2px rgba(255, 255, 255, 0.125);
+		content: '\f104';
+		display: inline-block;
+		font-size: 1.25em;
+		height: 2em;
+		line-height: 1.75em;
+		margin-right: 0.85em;
+		text-align: center;
+		text-indent: 0.15em;
+		vertical-align: middle;
+		width: 2em;
+	}
+
+	a.special2:not(.button):hover:before {
+		background-color: rgba(255, 255, 255, 0.025);
+	}
+
+	a.special2:not(.button):active:before {
+		background-color: rgba(255, 255, 255, 0.075);
+	}
+
 	strong, b {
 		color: #ffffff;
 		font-weight: 600;
@@ -4206,9 +4259,13 @@ input, select, textarea {
   
   .card {
 	text-align: center;
+    border-radius: 10px; /* Adjust the px value to increase or decrease the roundness */
+    /*border: 2px solid #000000;  This is a 2px solid black border, change color as needed */
   }
   
   .card img {
 	max-width: 100%;
 	height: auto;
+    border-radius: 10px; /* Same as the container to ensure consistency */
+	border: 2px solid #26455f;
   }

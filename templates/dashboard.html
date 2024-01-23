@@ -41,13 +41,24 @@
 		<!-- Page Wrapper -->
 			<div id="page-wrapper">
 
-				<!-- Header -->
-						<header id="header">
-						<h1>{{username}}</h1>
-						<nav>
-							<a href="#menu">Menu</a>
-						</nav>
-					</header>
+				<!-- Header  -->
+					<!---->
+					{% if authorized %}
+					<header id="header">
+					<h1>
+						<a href="{{url_for('home')}}"><img class="icon" style="width: 2.5em; height: auto; top: 12px;" src="{{ url_for( 'static', filename = 'images/main_logo.png') }}" alt="" /></a>
+						CommunityPlaylist - {{username}}
+					</h1>
+					{% else %}
+					<header id="header" class="alt">
+					<h1>CommunityPlaylist</h1>
+					{%endif %}
+					
+					
+					<nav>
+						<a href="#menu">Menu</a>
+					</nav>
+				</header>
 
 				<!-- Menu -->
 					<nav id="menu">
@@ -84,16 +95,15 @@
 								<h2 style="text-align: center;">Pick a server to modify:</h2>
 								<div class="picker">
 								  <hr />
-								  <section class="cards" style="display: flex; flex-wrap: wrap; justify-content: right;">
+								  <section class="cards" >
 									{% for guild in guilds %}
 									<div class="card">
-									  <a href="/dashboard/{{guild.id}}">
+									  <a href="/dashboard/{{guild.id}}" >
 										{% if guild.icon_url is not none %}
-										<img src="{{guild.icon_url}}" class="{{guild.class_color}}" />
+										<img src="{{guild.icon_url}}" style="margin-left: auto; border: 2px solid #26455f;" />
 										{% else %}
 										<img
 										  src="https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png"
-										  class="{{guild.class_color}}"
 										/>
 										{% endif %}
 									  </a>

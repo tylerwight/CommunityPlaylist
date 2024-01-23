@@ -1,6 +1,5 @@
 
 import os
-from CommunityPlaylistBot import CommunityPlaylistBot
 import logging
 from dotenv import load_dotenv
 import discord
@@ -11,51 +10,16 @@ from discord.ext.ipc.client import Client
 import spotipy
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth
+import mysql.connector
 import json
-
-class SQLCacheHandler(spotipy.CacheHandler):
-	"""
-	A cache handler that stores the token info in SQL.
-	"""
-
-	def __init__(self, sql, key=None):
-		"""
-		Parameters:
-			* sql: sql object
-			* key: May be supplied, will otherwise be generated
-					(takes precedence over `token_info`)
-		"""
-		self.sql = sql
-		self.key = key if key else 'token_info'
-
-	def get_cached_token(self):
-		token_info = None
-		try:
-			#token_info = self.redis.get(self.key)
-			#if token_info:
-				#return json.loads(token_info)
-			print("attempting to get")
-
-		except Exception as e:
-			print('Error getting token from cache: ' + str(e))
-
-		return token_info
-
-	def save_token_to_cache(self, token_info):
-		try:
-			#self.redis.set(self.key, json.dumps(token_info))
-			print("I AM IN CACHE HANLDER, PRINTING")
-			print(self.key)
-			print(json.dumps(token_info))
-
-		except Exception as e:
-			print('Error saving token to cache: ' + str(e))
-
+import ast
 
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
 
+#Setup vars
 callbackurl = os.getenv('CALLBACK')
-port = os.getenv('PORT')
+#port = os.getenv('PORT')
 sqluser = os.getenv('MYSQL_USER')
 sqlpass = os.getenv('MYSQL_PASS')
 cid = os.getenv('SPOTIPY_CLIENT_ID')
@@ -68,9 +32,7 @@ add_bot_url = os.getenv('DISCORD_URL')
 spotify_scope = 'playlist-modify-public'
 intents = discord.Intents.all()
 
-logging.basicConfig(level=logging.INFO)
-
-
+#Setup Quart
 app = Quart(__name__)
 app.config["SECRET_KEY"] = "test123"
 app.config["DISCORD_CLIENT_ID"] = discord_cl_id
@@ -80,16 +42,61 @@ ipc_client = Client(secret_key = "test")
 ddiscord = DiscordOAuth2Session(app)
 
 
+
 def convert_ipc_response(ipc_response):
 	data = ipc_response.response
 	elements = data.replace("[", "").replace("]", "").split(",")
 	return [str(element) for element in elements]
+
+def check_guild_admin(user_guilds, target_guild):
+	for guild in user_guilds:
+		if guild.permissions.administrator:
+			print(f"you are an admin of this guild: {guild} with id {guild.id}, trying to see if you are admin of {target_guild}")
+			if str(guild.id) == str(target_guild):
+				return True, guild
+
+	return False, None
+
+async def check_bot_exists(guild_id):
+	attempted_guild = await ipc_client.request("get_gld", guild_id = guild_id)
+	if (attempted_guild.response == None) : 
+		print("This guild does not have the bot running")
+		return False
+	else:
+		print("This guild has the bot running")
+		return True
+	
+def query_db(sql_string):
+	if sql_string == None:
+		print("empty string, no query")
+		return None
+	if not (sql_string.startswith("SELECT") or sql_string.startswith("select")):
+		print("Didn't start with select")
+		return None
+	
+	try:
+		mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
+		cursor = mydb.cursor()
+	except Exception as e:
+		logging.error(f'error connecting to Mysql DB error: {e}')
+
+	cursor.execute(sql_string)
+	out = cursor.fetchall()
+
+	cursor.close()
+	mydb.close()
+	return out
+
+
+
+#Quart endpoints
 
 @app.route("/")
 async def home():
 	resp = await ipc_client.request("get_guild_data")
 	authorized = await ddiscord.authorized
 
+	print(query_db("SELECT * from guilds"))
 	print(resp)
 	print(str(resp.response))
 
@@ -185,27 +192,6 @@ async def dashboard():
 	return await render_template("dashboard.html", guild_count = guild_count, guilds = guilds, username=name, authorized=authorized)
 
 
-def check_guild_admin(user_guilds, target_guild):
-
-	for guild in user_guilds:
-		if guild.permissions.administrator:
-			print(f"you are an admin of this guild: {guild} with id {guild.id}, trying to see if you are admin of {target_guild}")
-			if str(guild.id) == str(target_guild):
-				return True, guild
-
-	return False, None
-
-async def check_bot_exists(guild_id):
-
-	attempted_guild = await ipc_client.request("get_gld", guild_id = guild_id)
-	print(f"howdy just checking on {attempted_guild}. maybe it has a {attempted_guild.response}")
-	if (attempted_guild.response == None) : 
-		print("This guild does not have the bot running")
-		return False
-	else:
-		print("This guild has the bot running")
-		return True
-
 @app.route("/dashboard/<int:guild_id>")
 async def dashboard_server(guild_id):
 	if not await ddiscord.authorized:
@@ -238,9 +224,112 @@ async def dashboard_server(guild_id):
 	except Exception as e:
 		print("=========AUTH FAILED!=============")
 		print(e)
+
+	channel_names = await ipc_client.request("get_channels", guild_id = guild_id)
+	print(f"response from ipc: {channel_names}")
+	if not channel_names.response == None:
+		channel_names = ast.literal_eval(channel_names.response)
+	else:
+		#channel_names = None
+		channel_names = [[0, "None"]]
+
+	current_channel = (query_db(f"SELECT watch_channel from guilds where guild_id={final_guild.id}"))
+
+	print(f"CURRENT CHANNEL STRAIGHT FROM DB {current_channel}")
+
+	if(current_channel == [] or current_channel == [(None,)]):
+		current_channel = "NONE"
+		has_channel = False
+	else:
+		current_channel = current_channel[0][0]
+		has_channel = True
+
+	print(f"printing current channel {current_channel}")
+	for target_channel in channel_names:
+		if str(target_channel[0]) == current_channel:
+			current_channel = target_channel[1]
+			break
+
+
+	print(type(channel_names))
+	#print (user_guilds.channels)
+	#print (vars(user_guilds))
+	#text_channels = [channel for channel in final_guild.channels if channel.type == "text"]
+	#channel_names = [channel.name for channel in text_channels]
+	return await render_template("dashboard_specific.html", username=name, guild = final_guild, installed = installed, spot_auth = spot_auth, add_bot_url = add_bot_url, authorized=authorized, channel_names=channel_names, current_channel=current_channel, has_channel = has_channel)
+
+@app.route("/dashboard/<int:guild_id>/channel")
+async def dashboard_channel(guild_id):
+	if not await ddiscord.authorized:
+		return redirect(url_for("login")) 
+
+	authorized = await ddiscord.authorized
+	user_guilds = await ddiscord.fetch_guilds()
+	admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
+	name = (await ddiscord.fetch_user()).name
+
+	print(f'admin_okay: {admin_okay}')
+	if admin_okay != True:
+		print(f"Admin check didn't work! How did we get to this URL? The previous page should have listed only servers you're an admin of")
+		return ("Not Authorized")
+
+	channel_names = await ipc_client.request("get_channels", guild_id = guild_id)
+	print(channel_names)
+	print(channel_names.response)
+
+	if not channel_names.response == None:
+		channel_names = ast.literal_eval(channel_names.response)
+	else:
+		channel_names = None
+
+	current_channel = (query_db(f"SELECT watch_channel from guilds where guild_id={final_guild.id}"))
+	print(f"printing current channel {current_channel}")
+	if(current_channel == []):
+		current_channel = "NONE"
+		has_channel = False
+	else:
+		current_channel = current_channel[0][0]
+		has_channel = True
+
+
+	for target_channel in channel_names:
+		print(f"0: {target_channel[0]} 1: {target_channel[1]} current_channel: {current_channel}")
+		print(f"0: {type(target_channel[0])} 1: {type(target_channel[1])} current_channel: {type(current_channel)}")
+		if str(target_channel[0]) == current_channel:
+			current_channel = target_channel[1]
+			break
+
+	return await render_template("dashboard_channel.html", username=name, guild = final_guild, authorized=authorized, channel_names=channel_names, current_channel=current_channel)
+
+
+@app.route("/dashboard/<int:guild_id>/channel/<int:channel_id>")
+async def dashboard_channel_set(guild_id, channel_id):
+	if not await ddiscord.authorized:
+		return redirect(url_for("login")) 
+
+	user_guilds = await ddiscord.fetch_guilds()
+	admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
+
+	print(f'admin_okay: {admin_okay}')
+	if admin_okay != True:
+		print(f"Admin check didn't work! How did we get to this URL? The previous page should have listed only servers you're an admin of")
+		return ("Not Authorized")
 	
-	
-	return await render_template("dashboard_specific.html", username=name, guild = final_guild, installed = installed, spot_auth = spot_auth, add_bot_url = add_bot_url, authorized=authorized)
+	mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
+	cursor = mydb.cursor()
+	sql = "UPDATE guilds set watch_channel = %s where guild_id = %s"
+	val = (channel_id, guild_id)
+	cursor.execute(sql, val)
+	mydb.commit()
+	cursor.close()
+	mydb.close()   
+
+	tmp = await ipc_client.request("update_guild", guild_id = guild_id)
+
+	return redirect(f"/dashboard/{guild_id}")
+
+
+
 
 @app.route("/dashboard/<int:guild_id>/spotauth")
 async def dashboard_spotauth(guild_id):
@@ -259,6 +348,8 @@ async def dashboard_spotauth(guild_id):
 	auth_url = auth_manager.get_authorize_url()
 	session['acting_guild'] = guild_id
 	return redirect(auth_url)
+
+
 
 @app.route("/dashboard/<int:guild_id>/spotdc")
 async def dashboard_spotdc(guild_id):
@@ -285,18 +376,8 @@ async def dashboard_spotdc(guild_id):
 	return redirect(f"/dashboard/{guild_id}")
 
 
-
+#uncomment if not launching from hypercorn directly
 # if __name__ == "__main__":
-
-# 	callbackurl = os.getenv('CALLBACK')
-# 	port = os.getenv('PORT')
-# 	sqluser = os.getenv('MYSQL_USER')
-# 	sqlpass = os.getenv('MYSQL_PASS')
-# 	cid = os.getenv('SPOTIPY_CLIENT_ID')
-# 	secret = os.getenv('SPOTIPY_CLIENT_SECRET')
-# 	TOKEN = os.getenv('DISCORD_TOKEN')
-# 	spotify_scope = 'playlist-modify-public'
-# 	username = 'test'
 # 	app.run(host='0.0.0.0', port=8080, ssl_context='adhoc')
 	
 

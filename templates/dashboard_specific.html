@@ -11,52 +11,27 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="{{ url_for( 'static', filename = 'assets/css/main.css') }}" />
 		<noscript><link rel="stylesheet" href="{{ url_for( 'static', filename = 'assets/css/noscript.css') }}" /></noscript>
-<!--
-		<style>
-			.cards {
-			  display: grid;
-			  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-			  gap: 20px;
-			}
-		  
-			.card {
-			  text-align: center;
-			}
 
-			.card a {
-    			text-decoration: none;
-  			}
-		  
-			.card img {
-			  max-width: 100%;
-			  height: auto;
-			  border: 0;
-			}
-
-			.container {
-			display: flex;
-			justify-content: space-between;
-			}
-
-			.left-heading {
-			margin: 0; /* Remove default margin */
-			text-align: left;
-			}
-			.right-heading {
-			margin: 0; /* Remove default margin */
-			text-align: right;
-			}
-		  </style>
--->
 	</head>
 	<body class="is-preload">
 
 		<!-- Page Wrapper -->
 			<div id="page-wrapper">
 
-				<!-- Header -->
+				<!-- Header  -->
+					<!---->
+						{% if authorized %}
 						<header id="header">
-						<h1>{{username}}</h1>
+						<h1>
+							<a href="{{url_for('home')}}"><img class="icon" style="width: 2.5em; height: auto; top: 12px;" src="{{ url_for( 'static', filename = 'images/main_logo.png') }}" alt="" /></a>
+							CommunityPlaylist - {{username}}
+						</h1>
+						{% else %}
+						<header id="header" class="alt">
+						<h1>CommunityPlaylist</h1>
+						{%endif %}
+						
+						
 						<nav>
 							<a href="#menu">Menu</a>
 						</nav>
@@ -83,77 +58,95 @@
 					</nav>
 
 				<!-- Wrapper -->
-					<section id="wrapper">
-						<header>
-							<div class="inner">
-								<h2>{{guild.name}}</h2>
-								<p>Hello, {{username}}! You are editing the settings for the Guild {{guild.name}} </p>
-
-								<section class="cards" style="display: flex; flex-wrap: wrap; justify-content: right;">
+				<section id="wrapper">
+					<header>
+						
+						<div class="inner">
+							<h2 style="display: flex; justify-content: space-between; align-items: center;">
+								<!-- <a href="{{url_for('dashboard')}}"><img class="icon" style="width: 2.5em; height: auto;" src="{{ url_for( 'static', filename = 'images/back_button.png') }}" alt="" /></a> -->
+								<a href="{{url_for('dashboard')}}" class="special2"></a>
+								{{guild.name}}
+								<section class="cards">
 									<div class="card">
-									  <a href="/dashboard/{{guild.id}}" >
-										{% if guild.icon_url is not none %}
-										<img src="{{guild.icon_url}}"/>
-										{% else %}
-										<img src="https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png"/>
-										{% endif %}
-									  </a>
-									  <br />
-									  {{ guild.name }}
+										<a href="/dashboard/{{guild.id}}">
+											{% if guild.icon_url is not none %}
+												<img src="{{guild.icon_url}}" style="margin-left: auto;"/>
+											{% else %}
+												<img src="https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png" style="margin-left: auto;"/>
+											{% endif %}
+										</a>
 									</div>
-								  </section>
+								</section>
+							</h2>
+							<p>Hello, {{username}}! You are editing the settings for the Guild {{guild.name}} </p> 
+								
+							
+								<ul style="list-style-type: none;">
+									<li>
+									  <label for="setting1">Bot Status:</label>
+									  {% if installed %}
+									  <p>
+									  <img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
+									  CommunityPlaylist bot is a member of this server
+									  </p>
+									  {% else %}
+									  <p>
+									  <img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
+									  CommunityPlaylist bot is not a member of this server
+									</p>
+									<a target="_blank" rel="noopener noreferrer" href="{{add_bot_url}}" class="button">Add to Server</a>
+									  {% endif %}		  
 
-								<a href="/dashboard" class="button">Back to Dashboard</a>
+									</li>
+									<p></p>
+									<li>
+									  <label for="setting2">Spotify Status:</label>
+
+
+									  {% if not spot_auth %}
+									  <p>
+									  <img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
+									  This server does not have working Spotify Authentication
+									</p>
+									  <a href="/dashboard/{{guild.id}}/spotauth" class="button">Add a Spotify account to this server</a>
+									  
+									  {% else %}
+									  <p>
+									  <img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
+									  Spotify authentication working!
+									</p>
+									  <a href="/dashboard/{{guild.id}}/spotdc" class="button">Disconnect Spotify account</a>
+									
+									  {% endif %}		  
+									<p></p>
+
+									  
+									</li>
+									<li>
+									  <label for="setting3">Monitored Text Channel:</label>
+									  <p style="font-size: 1.3em;">
+										{% if has_channel %}
+										<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
+										{{ current_channel }}
+										{% else %}
+										<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
+										{{ current_channel }}
+										{% endif %}	
+										
+									</p>
+									{% if installed %}
+									  <a href="/dashboard/{{guild.id}}/channel" class="button">Change Channel</a>
+									  {% else %}
+									  Add bot to discord server first to choose your monitored text channel
+									  {% endif %}	
+									</li>
+
+									<!-- Add more settings as needed -->
+								  </ul>
+
+
 							</div>
 						</header>
-
-						<!-- One -->
-						<section id="one" class="wrapper spotlight style1">
-							<div class="inner">
-								{% if installed %}
-								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" /></a>
-								{% else %}
-								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" /></a>
-								{% endif %}
-								<div class="content">
-									<h2 class="major">Bot Status</h2>
-									{% if installed %}
-									<p>CommunityPlaylist bot is a member of this server</p>
-									{% else %}
-									<p>CommunityPlaylist bot is not a member of this server</p>
-									<a target="_blank" rel="noopener noreferrer" href="{{add_bot_url}}" class="button">Add to Server</a>
-									{% endif %}
-								</div>
-							</div>
-						</section>
-
-						<!-- Two -->
-						<section id="two" class="wrapper alt spotlight style2">
-							<div class="inner">
-								{% if spot_auth %}
-								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" /></a>
-								{% else %}
-								<a href="#" class="image"><img src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" /></a>
-								{% endif %}
-								<div class="content">
-									<h2 class="major">Spotify Status</h2>
-									
-									{% if not spot_auth %}
-									<p>This server does not have working Spotify Authentication</p>
-									<a href="/dashboard/{{guild.id}}/spotauth" class="button">Add a Spotify account to this server</a>
-									{% else %}
-									<p>Spotify Authentication working!</p>
-									<a href="/dashboard/{{guild.id}}/spotdc" class="button">Disconnect Spotify account</a>
-									{% endif %}
-								</div>
-							</div>
-						</section>
-
-
-
-
-
-
 
 
 				<!-- Footer -->
