@@ -89,6 +89,34 @@ class CommunityPlaylistBot(commands.Bot):
     async def on_ipc_error(self, endpoint, error):
         print(f"{endpoint} raised {error}")
 
+    async def update_guild(self, guild_id):
+        guild = self.get_guild(guild_id)
+        if guild is None: return None
+
+        try:
+            mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
+            cursor = mydb.cursor()
+        except Exception as e:
+            logging.error(f'error connecting to Mysql DB error: {e}')
+
+        for x in self.guild_data:
+            if x[0] == str(guild.id):
+                cursor.execute("SELECT * FROM guilds where guild_id=%s",([x[0]]))
+                record = cursor.fetchall()
+                print(f"trying to update x[0] {x} with this data: {record[0]}")
+                x[1] = record[0][1]
+                x[2] = record[0][2]
+                x[3] = record[0][3]
+                x[4] = record[0][4]
+                x[5] = record[0][5]
+                x[6] = record[0][6]
+                print(x)
+        cursor.close()
+        mydb.close()
+
+        return None
+
+
     @Server.route()
     async def get_guild_data(self,data: ClientPayload) -> Dict:
         out = []
@@ -132,54 +160,9 @@ class CommunityPlaylistBot(commands.Bot):
         return json.dumps(text_channels)
     
     @Server.route()
-    async def update_guild(self,data: ClientPayload) -> Dict:
-
+    async def update_guild_ipc(self,data: ClientPayload) -> Dict:
         print(f"trying update from db for guild: {data.guild_id}")
-        guild = self.get_guild(data.guild_id)
-        if guild is None: return None
-
-        try:
-            mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
-            cursor = mydb.cursor()
-        except Exception as e:
-            logging.error(f'error connecting to Mysql DB error: {e}')
-
-        for x in self.guild_data:
-            if x[0] == str(guild.id):
-                cursor.execute("SELECT * FROM guilds where guild_id=%s",([x[0]]))
-                record = cursor.fetchall()
-                print(f"trying to update x[0] {x} with this data: {record[0]}")
-                x[1] = record[0][1]
-                x[2] = record[0][2]
-                x[3] = record[0][3]
-                x[4] = record[0][4]
-                x[5] = record[0][5]
-                x[6] = record[0][6]
-                print(x)
-
-
-
-
-        cursor.close()
-        mydb.close()
-
-
-            # for y in x:
-            #     print(f"printing y: {y}")
-            #     if str(guild.id) in y:
-            #         print(f"I found the correct guild!")
-            #         print(f"printing guild_data[x][y] {self.guild_data[x][y]}. I would like to update guild_data[x][3] which would be {self.guild_data[x][3]}")
-            #         duplicate = duplicate + 1
-            #         logging.info("This newly joined guild already exists in the DB? Loading it's data")
-
-            #         #get data from DB for existing guild
-            #         cursor.execute("SELECT * FROM guilds where guild_id=%s",([y]))
-            #         records = cursor.fetchall()
-            #         #convert to list because it's a list of tuples by default
-            #         listed_records = [list(row) for row in records]
-            #         logging.info(f"data loaded for guild: {listed_records[0]}")
-
-            #         self.guild_data.append(listed_records[0]) 
+        self.update_guild(data.guild_id)
 
         return None
 

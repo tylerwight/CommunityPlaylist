@@ -62,16 +62,10 @@
 								<h2>Instructions</h2>
 								<p>
 								<ol>
-									<li>Login to this website and then go to your dashboard</li>
-									<li>Pick a server you would like to use CommunityPlaylist on (you must be an admin)</li>
-									<li>Under Bot Status click "Add to Server" button. Refresh and make sure Bot Status is now green</li>
-									<li>Under Spotify Status click "Add Spotify Account", ensure Spotify Status is now green </li>
-									<li>Go to the discord server and run these commands: </li>
-									<li><code>!set_playlist &lt;playlist name&gt;</code> Choose a playlist to add to. If one already exists on your Spotify account it will use it, otherwise it will create it </li>
-									<li><code>!set_channel &lt;Text channelID number&gt;</code> Choose which text channel to monitor for spotify links. You can get your channel id following <a href="https://turbofuture.com/internet/Discord-Channel-ID"><u>this guide</u></a>  </li>
-									<li><code>!enable</code> Enable the bot. By default it is disabled. This will toggle bot from actively watching for spotify links or not </li>
-									<li><code>!get_playlist</code> Use this command to check which playlist the bot is adding to </li>
-									<li>Scroll down for examples </li>
+									<li>Login with Discord and go to Dashboard</li>
+									<li>Pick a server you would like to add CommunityPlaylist too. (Only servers you are an admin of are shown)</li>
+									<li>On that server's dashboard, ensure all items are green</li>
+									<li>Go paste a Spotify link in the monitored text channel and see if the bot adds to your playlist!</li>
 								  </ol>
 								</p>
 							</div>
@@ -83,22 +77,22 @@
 						<!-- One -->
 							<section id="one" class="wrapper spotlight style1">
 								<div class="inner">
-									<a href="#" class="image"><img src="images/pic01.jpg" alt="" /></a>
+									<!-- <a href="#" class="image"><img src="images/pic01.jpg" alt="" /></a> -->
 									<div class="content">
 										<h2 class="major">Status Example</h2>
 										<p>First ensure all status are green</p>
-										<img class="bordered-image" src="{{ url_for( 'static', filename = 'images/status_example.png') }}" alt="" width="600" height="420" />
+										<img class="bordered-image" src="{{ url_for( 'static', filename = 'images/status_example.png') }}" alt="" width="700" height="420" />
 									</div>
 								</div>
 							</section>
 						<!-- Two -->
 						<section id="two" class="wrapper alt spotlight style2">
 							<div class="inner">
-								<a href="#" class="image"><img src="images/pic02.jpg" alt="" /></a>
+								<!-- <a href="#" class="image"><img src="images/pic02.jpg" alt="" /></a> -->
 								<div class="content">
-									<h2 class="major">Commands example</h2>
-									<p>After ensuring all status are green on the website, here is an example of setting up the bot.</p>
-									<img class="bordered-image" src="{{ url_for( 'static', filename = 'images/commands.png') }}" alt="" />
+									<h2 class="major">Working Example</h2>
+									<p>With the dashboard green, the bot should be working. Paste a link in your text channel! </p>
+									<img class="bordered-image" src="{{ url_for( 'static', filename = 'images/chat_log.png') }}" alt="" />
 								</div>
 							</div>
 						</section>

@@ -85,8 +85,8 @@
 						<header>
 							<div class="inner">
 								<h2>Dashboard</h2>
-								<p align="center">Hello, {{username}}!</p>
-								<p>Below are all the servers that you have permissions to add bots to. You need to be an administrator on that server to add or change this bot.</p>
+								<span align="center">Hello, {{username}}!</span> 
+								Below are all the servers that you have permissions to add bots to. You need to be an administrator on that server to add or change this bot.</p>
 							</div>
 						</header>
 
@@ -94,17 +94,14 @@
 							<div class="wrapper">
 								<h2 style="text-align: center;">Pick a server to modify:</h2>
 								<div class="picker">
-								  <hr />
-								  <section class="cards" >
+								  <section class="cards" style="display: flex; flex-wrap: wrap; justify-content: center;">
 									{% for guild in guilds %}
 									<div class="card">
 									  <a href="/dashboard/{{guild.id}}" >
 										{% if guild.icon_url is not none %}
 										<img src="{{guild.icon_url}}" style="margin-left: auto; border: 2px solid #26455f;" />
 										{% else %}
-										<img
-										  src="https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png"
-										/>
+										<img style="width: 128px; height: 128px; border: 2px solid #26455f;" src="{{ url_for( 'static', filename = 'images/discord_no_channel_pic.png') }}"	/>
 										{% endif %}
 									  </a>
 									  <br />

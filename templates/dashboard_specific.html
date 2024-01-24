@@ -72,7 +72,7 @@
 											{% if guild.icon_url is not none %}
 												<img src="{{guild.icon_url}}" style="margin-left: auto;"/>
 											{% else %}
-												<img src="https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png" style="margin-left: auto;"/>
+												<img style="width: 128px; height: 128px; border: 2px solid #26455f;" src="{{ url_for( 'static', filename = 'images/discord_no_channel_pic.png') }}"	/>
 											{% endif %}
 										</a>
 									</div>
@@ -81,69 +81,145 @@
 							<p>Hello, {{username}}! You are editing the settings for the Guild {{guild.name}} </p> 
 								
 							
-								<ul style="list-style-type: none;">
+								<ul style="list-style-type: none;" class="alt">
 									<li>
-									  <label for="setting1">Bot Status:</label>
+										<label for="setting1">
+											Bot Connected
+											<div class="tooltip">
+												<span class="icon2 solid fa-question" style="width: 2px; height: 2px;"></span>
+												<span class="tooltiptext">
+												If this is red it means we cannot detect the bot on your discord server. The bot must be a member of your discord server to function.
+												</span>
+											</div>
+										</label>
 									  {% if installed %}
-									  <p>
+									  
 									  <img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
 									  CommunityPlaylist bot is a member of this server
-									  </p>
 									  {% else %}
-									  <p>
 									  <img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
 									  CommunityPlaylist bot is not a member of this server
-									</p>
-									<a target="_blank" rel="noopener noreferrer" href="{{add_bot_url}}" class="button">Add to Server</a>
+									<a target="_blank" rel="noopener noreferrer" href="{{add_bot_url}}" class="button primary small" style="float: right;">Add to Server</a>
 									  {% endif %}		  
 
 									</li>
-									<p></p>
+
+
+									{% if installed %}
 									<li>
-									  <label for="setting2">Spotify Status:</label>
+										
+										<label for="setting2">
+											Text Channel
+											<div class="tooltip">
+												<span class="icon2 solid fa-question" style="width: 2px; height: 2px;"></span>
+												<span class="tooltiptext">
+												This is the text channel on your Discord server to watch for Spotify links. The bot cannot watch the whole server and needs a text channel to look at.
+												</span>
+											</div>
+										</label>
+											{% if has_channel %}
+											<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
+											Monitored channel: <code>{{ current_channel }}</code>
+											{% else %}
+											<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
+											Monitored channel: <code>{{ current_channel }}</code>
+											{% endif %}	
+										
+									
+									<a href="/dashboard/{{guild.id}}/channel" class="button primary small" style="float: right;">Change Channel</a>
+									
+									</li>
+									{% endif %}	
+
+
+									<li>
+										<label for="setting3">
+											Spotify Status
+											<div class="tooltip">
+												<span class="icon2 solid fa-question" style="width: 2px; height: 2px;"></span>
+												<span class="tooltiptext">
+												We need a spotify account to connect to so we can create and add to a playlist. A free account should work fine if you don't want to use your main.
+												</span>
+											</div>
+										</label>
 
 
 									  {% if not spot_auth %}
-									  <p>
 									  <img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
 									  This server does not have working Spotify Authentication
-									</p>
-									  <a href="/dashboard/{{guild.id}}/spotauth" class="button">Add a Spotify account to this server</a>
+									  <a href="/dashboard/{{guild.id}}/spotauth" class="button primary small" style="float: right;">Connect Spotify Account</a>
 									  
 									  {% else %}
-									  <p>
 									  <img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
 									  Spotify authentication working!
-									</p>
-									  <a href="/dashboard/{{guild.id}}/spotdc" class="button">Disconnect Spotify account</a>
+									  <a href="/dashboard/{{guild.id}}/spotdc" class="button primary small" style="float: right;">Remove Spotify Account</a>
 									
 									  {% endif %}		  
-									<p></p>
+
 
 									  
 									</li>
-									<li>
-									  <label for="setting3">Monitored Text Channel:</label>
-									  <p style="font-size: 1.3em;">
-										{% if has_channel %}
-										<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
-										{{ current_channel }}
-										{% else %}
-										<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
-										{{ current_channel }}
-										{% endif %}	
-										
-									</p>
-									{% if installed %}
-									  <a href="/dashboard/{{guild.id}}/channel" class="button">Change Channel</a>
-									  {% else %}
-									  Add bot to discord server first to choose your monitored text channel
-									  {% endif %}	
-									</li>
 
-									<!-- Add more settings as needed -->
+									{% if spot_auth %}
+									<li>
+										
+										<label for="setting4">
+											Spotify Playlist
+											<div class="tooltip">
+												<span class="icon2 solid fa-question" style="width: 2px; height: 2px;"></span>
+												<span class="tooltiptext">
+												This is the Spotify playlist that CommunityPlaylist will add songs to.
+												</span>
+											</div>
+										</label>
+										
+											{% if has_playlist %}
+											<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
+											Playlist: <code>{{ current_playlist }}</code>
+											{% else %}
+											<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
+											Playlist: <code>{{ current_playlist }}</code>
+											{% endif %}	
+										
+										
+									<a href="/dashboard/{{guild.id}}/playlist" class="button primary small" style="float: right;">Change playlist</a>
+									
+									</li>
+									{% endif %}	
+
+									{% if installed and spot_auth and has_channel and has_playlist %}
+									<li>
+										
+										<label for="setting5">
+											Bot Enable
+											<div class="tooltip">
+												<span class="icon2 solid fa-question" style="width: 2px; height: 2px;"></span>
+												<span class="tooltiptext">
+												Once everything above is green, you can choose to enable to disable the bot from actively monitoring for Spotify links
+												</span>
+											</div>
+										</label>
+											{% if bot_enabled %}
+											<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
+											Status: <code>{{ bot_enabled }}</code> 
+											<a href="/dashboard/{{guild.id}}/playlist" class="button primary small" style="float: right;">Disable</a>
+											{% else %}
+											<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
+											status: <code>{{ bot_enabled }}</code>
+											<a href="/dashboard/{{guild.id}}/playlist" class="button primary small" style="float: right;">Enable</a>
+											{% endif %}	
+										
+										
+									
+									
+									</li>
+									{% endif %}	
+
 								  </ul>
 
+								  {% if installed and spot_auth and has_channel and has_playlist and bot_enabled %}
+								  All checks are good! To test, copy a spotify link and paste it in text channel {{ current_channel }} on your Discord server. The bot should respond, and you should see the song now in your Spotify playlist!
+								  {% endif %}	
 
 							</div>
 						</header>

@@ -4269,3 +4269,90 @@ a.special2:not(.button) {
     border-radius: 10px; /* Same as the container to ensure consistency */
 	border: 2px solid #26455f;
   }
+
+  .small-button {
+    font-size: 12px;
+    padding: 5px 10px;
+}
+
+/* Tooltip container */
+.tooltip {
+	position: relative;
+	display: inline-block;
+  }
+  
+  /* Tooltip text */
+  .tooltip .tooltiptext {
+	visibility: hidden;
+	/* width: 120px; */
+	width: 20em;
+	background-color: black;
+	color: #fff;
+	text-align: center;
+	padding: 5px;
+	border-radius: 6px;
+	text-transform: none;
+	/* Position the tooltip text - see examples below! */
+	position: absolute;
+	z-index: 1;
+  }
+  
+  /* Show the tooltip text when you mouse over the tooltip container */
+  .tooltip:hover .tooltiptext {
+	visibility: visible;
+  }
+
+  /* Icons */
+
+	.icon2 {
+		cursor: default;
+		list-style: none;
+		padding-left: 0;
+		display: inline-block;
+		padding: 0 1em 0 0;
+		padding-right: 0;
+		font-size: 1.00em;
+		text-decoration: none;
+		border-bottom: none;
+		position: relative;
+
+		
+		
+		cursor: default;
+		display: inline-block;
+		text-align: center;
+
+	}
+
+	
+		.icon2:before {
+			-moz-osx-font-smoothing: grayscale;
+			-webkit-font-smoothing: antialiased;
+			display: inline-block;
+			font-style: normal;
+			font-variant: normal;
+			text-rendering: auto;
+			line-height: 1;
+			text-transform: none !important;
+			font-family: 'Font Awesome 5 Free';
+			font-weight: 400;
+			border: solid 2px rgba(255, 255, 255, 0.306);
+			border-radius: 100%;
+			padding: 2px;
+		}
+
+		.icon2 > .label {
+			display: none;
+		}
+
+		/* .icon2:before {
+			 line-height: 100px;
+		} */
+
+		.icon2.solid:before {
+			font-weight: 900;
+		}
+
+		.icon2.brands:before {
+			font-family: 'Font Awesome 5 Brands';
+		}

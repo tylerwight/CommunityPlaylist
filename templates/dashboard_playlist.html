@@ -76,31 +76,23 @@
 									</div>
 								</section>
 							</h2>
-							<p>Please pick the text channel you would like to monitor. </p> 
+							<p>Please enter a playlist name: </p> 
 								
 							
 								<ul style="list-style-type: none;">
 									<li>
-									  <label for="current">Current Channel:</label>
+									  <label for="current">Current Playlist:</label>
 									  <p style="font-size: 1.3em;">
-										{{ current_channel }}
+										{{ current_playlist }}
 									</p>
 									
 
 									</li>
 									<li>
-									<label for="setting3">New Channel:</label>
-									  <select id="setting3" name="setting3">
-										{% if channel_names is not none%}
-											{% for channel_name in channel_names %}
-												<option value="{{channel_name[0]}}">{{ channel_name[1] }}</option>
-											{% endfor %}
-										{% else %}
-											<option value="option">None</option>
-											{% endif %}
-									  </select>
+									<label for="setting3">New playlist:</label>
+									<input type="text" name="playlistinput" id="playlistinput">
 									  <p></p>
-									  <a id="apply-button" style="justify-content: right; text-align: center;" href="/dashboard/{{guild.id}}/channel/{{channel_names[0][0]}}" class="button">Apply</a>
+									  <a id="apply-button" style="justify-content: right; text-align: center;" href="/dashboard/{{guild.id}}/playlist/apply" class="button">Apply</a>
 									</li>
 
 									<!-- Add more settings as needed -->
@@ -131,7 +123,7 @@
 
 			<script>
 				// Get references to the select and apply button elements
-				const selectElement = document.getElementById("setting3");
+				const selectElement = document.getElementById("playlistinput");
 				const applyButton = document.getElementById("apply-button");
 			  
 				// Add an event listener to the select element
