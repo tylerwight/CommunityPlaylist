@@ -90,6 +90,7 @@ class CommunityPlaylistBot(commands.Bot):
         print(f"{endpoint} raised {error}")
 
     async def update_guild(self, guild_id):
+        print("=========== MAIN GUILD UPDATE")
         guild = self.get_guild(guild_id)
         if guild is None: return None
 
@@ -161,8 +162,9 @@ class CommunityPlaylistBot(commands.Bot):
     
     @Server.route()
     async def update_guild_ipc(self,data: ClientPayload) -> Dict:
+        print("============================")
         print(f"trying update from db for guild: {data.guild_id}")
-        self.update_guild(data.guild_id)
+        await self.update_guild(data.guild_id)
 
         return None
 
@@ -343,12 +345,12 @@ class CommunityPlaylistBot(commands.Bot):
             extracted = []
             extracted.append(re.search("(?P<url>https?://[^\s]+)", message.content).group("url"))
 
-            if current_guild[2] == None:
-                await channel_name.send('There is no spotify user setup to use. Please use the auth_me command')
-                return
-            if current_guild[5] == None:
-                await channel_name.send('There is no playlist setup to use. Please use the set_playlist command')
-                return
+            # if current_guild[2] == None:
+            #     await channel_name.send('There is no spotify user setup to use. Please use the auth_me command')
+            #     return
+            # if current_guild[5] == None:
+            #     await channel_name.send('There is no playlist setup to use. Please use the set_playlist command')
+            #     return
 
             logging.info("Found this link: ")
             logging.info(extracted)

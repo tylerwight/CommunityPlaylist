@@ -87,6 +87,13 @@ def query_db(sql_string):
 	mydb.close()
 	return out
 
+def GetPlaylistID(username, playname, spotify_obj):
+	playid = ''
+	playlists = spotify_obj.user_playlists(username)
+	for playlist in playlists['items']:  # iterate through playlists I follow
+		if playlist['name'] == playname:  # filter for newly created playlist
+			playid = playlist['id']
+	return playid
 
 
 #Quart endpoints
@@ -251,6 +258,7 @@ async def dashboard_server(guild_id):
 	
 	if bot_enabled == 1: bot_enabled = True
 	else: bot_enabled = False
+	
 
 	print(f"this is what bot_enabled looks like: {bot_enabled}")
 	
@@ -304,7 +312,7 @@ async def dashboard_channel(guild_id):
 	return await render_template("dashboard_channel.html", username=name, guild = final_guild, authorized=authorized, channel_names=channel_names, current_channel=current_channel)
 
 
-@app.route("/dashboard/<int:guild_id>/playlist")
+@app.route("/dashboard/<int:guild_id>/playlist", methods=['GET', 'POST'])
 async def dashboard_playlist(guild_id):
 	if not await ddiscord.authorized:
 		return redirect(url_for("login")) 
@@ -317,7 +325,7 @@ async def dashboard_playlist(guild_id):
 	if admin_okay != True:
 		print(f"Admin check didn't work! How did we get to this URL? The previous page should have listed only servers you're an admin of")
 		return ("Not Authorized")
-
+	
 	current_playlist = (query_db(f"SELECT playlist_name from guilds where guild_id={final_guild.id}"))
 	if(current_playlist == [] or current_playlist == [(None,)]):
 		current_playlist = "NONE"
@@ -327,8 +335,110 @@ async def dashboard_playlist(guild_id):
 		has_playlist = True
 
 
+	if request.method == 'POST':
+		input_playlist = (await request.form).get('playlist_input')
+		try:
+			cache_handler = spotipy.cache_handler.CacheFileHandler(username=guild_id)
+			auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=spotify_scope, cache_handler=cache_handler)
+
+			if not cache_handler.get_cached_token() == None:
+				print("Found cached token")
+				sp = spotipy.Spotify(auth_manager=auth_manager)
+				print(sp.me())
+			else:
+				print("NO CACHED TOKEN!")
+				return("Could not find your spotify data")
+			
+		except Exception as e:
+			print("=========AUTH FAILED!=============")
+			print(e)
+			return(f"Found spotify data, but authentication failed for reason {e}")
+		
+		duplicate = 0
+		username = sp.current_user()["id"]
+		playlists = sp.user_playlists(username)
+		while playlists:
+			for i, playlist in enumerate(playlists['items']):
+				if playlist['name'] == input_playlist:
+					print("playlist already exists in Spotify, will add to it")
+					duplicate = 1
+					playlist_uri = playlist['uri']
+					playlist_title = input_playlist
+			if playlists['next']:
+				playlists = sp.next(playlists)
+			else:
+				playlists = None
+
+		if duplicate == 0:
+			print("did NOT find playlist, making a new one")
+			playlist_title = input_playlist
+			username = sp.current_user()["id"]
+			sp.user_playlist_create(username, name=playlist_title)
+			playlist_uri = GetPlaylistID(username, playlist_title, sp)
+		
+
+		mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
+		cursor = mydb.cursor()
+		sql = "UPDATE guilds set playlist_name = %s, playlist_id = %s where guild_id = %s"
+		val = (playlist_title, playlist_uri, guild_id)
+		cursor.execute(sql, val)
+		mydb.commit()
+		cursor.close()
+		mydb.close()  
+
+		await ipc_client.request("update_guild_ipc", current_playlist = playlist_title, guild_id = guild_id)
+
+		return await render_template("dashboard_playlistOK.html", username=name, guild = final_guild, authorized=authorized, current_playlist=current_playlist)
+
+
 	return await render_template("dashboard_playlist.html", username=name, guild = final_guild, authorized=authorized, current_playlist=current_playlist)
 
+
+# @app.route("/dashboard/<int:guild_id>/toggle")
+# async def dashboard_toggle(guild_id):
+# 	print("I AM IN HEREIHRIEHRIHERIEHRI")
+# 	return ("reached")
+@app.route("/dashboard/<int:guild_id>/toggle")
+async def dashboard_toggle(guild_id):
+	if not await ddiscord.authorized:
+		return redirect(url_for("login")) 
+	print("I AM IN HEREIHRIEHRIHERIEHRI")
+	user_guilds = await ddiscord.fetch_guilds()
+	admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
+
+	print(f'admin_okay: {admin_okay}')
+	if admin_okay != True:
+		print(f"Admin check didn't work! How did we get to this URL? The previous page should have listed only servers you're an admin of")
+		return ("Not Authorized")
+	
+	bot_enabled = (query_db(f"SELECT enabled from guilds where guild_id={final_guild.id}"))
+	print(f"this is what bot_enabled looks like before: {bot_enabled}")
+	if(bot_enabled == [] or bot_enabled == [(None,)]):
+		bot_enabled = 1
+		print("Didn't get bot enabled status from DB. This should always exist as a 1 or 0. Weird.")
+	else:
+		bot_enabled = bot_enabled[0][0]
+	
+	#swap the state
+	if bot_enabled == 1:
+		bot_enabled = 0
+	else:
+		bot_enabled = 1
+
+	print(f"writing bot enabled to db: {bot_enabled}")
+	mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
+	cursor = mydb.cursor()
+	sql = "UPDATE guilds set enabled = %s where guild_id = %s"
+	val = (bot_enabled, guild_id)
+	cursor.execute(sql, val)
+	mydb.commit()
+	cursor.close()
+	mydb.close()   
+
+	print("updating guild")
+	await ipc_client.request("update_guild_ipc", guild_id = guild_id)
+
+	return redirect(f"/dashboard/{guild_id}")
 
 @app.route("/dashboard/<int:guild_id>/channel/<int:channel_id>")
 async def dashboard_channel_set(guild_id, channel_id):
@@ -406,6 +516,6 @@ async def dashboard_spotdc(guild_id):
 
 #uncomment if not launching from hypercorn directly
 # if __name__ == "__main__":
-# 	app.run(host='0.0.0.0', port=8080, ssl_context='adhoc')
+#  	app.run(host='0.0.0.0', port=8080, ssl_context='adhoc', debug=True)
 	
 

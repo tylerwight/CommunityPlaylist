@@ -202,11 +202,11 @@
 											{% if bot_enabled %}
 											<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/greencheck.png') }}" alt="" />
 											Status: <code>{{ bot_enabled }}</code> 
-											<a href="/dashboard/{{guild.id}}/playlist" class="button primary small" style="float: right;">Disable</a>
+											<a href="/dashboard/{{guild.id}}/toggle" class="button primary small" style="float: right;">Disable</a>
 											{% else %}
 											<img style="width: 50px; height: auto;" src="{{ url_for( 'static', filename = 'images/redx.png') }}" alt="" />
 											status: <code>{{ bot_enabled }}</code>
-											<a href="/dashboard/{{guild.id}}/playlist" class="button primary small" style="float: right;">Enable</a>
+											<a href="/dashboard/{{guild.id}}/toggle" class="button primary small" style="float: right;">Enable</a>
 											{% endif %}	
 										
 										
