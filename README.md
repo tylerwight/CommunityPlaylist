@@ -16,10 +16,11 @@ This bot supports having multiple separate discord servers. Keeps track of it's 
 - [ ] add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
 - [ ] update to discords built in command prefix stuff
 - [ ] Write new HOW-TO section for the major updates
+- [ ] Update readme with new howto info
 
 
 
-# OLD HOW-TO THIS IS LEGACY AND LIKELY DOESN'T APPPLY
+# OLD HOW-TO THIS IS LEGACY AND WILL BE REPLACED
 
 ## How to Install:
 
