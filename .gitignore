@@ -12,3 +12,8 @@ __pycache__
 html5up-solid-state.zip
 Frontend.py
 certbot
+templates/original_index_for_testing.html
+templates/dashboard_test.html
+cert.pem
+key.pem
+Spotipy_sql.py
