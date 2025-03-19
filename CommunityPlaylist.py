@@ -132,12 +132,16 @@ async def logout():
 
 @app.route("/callback_D")
 async def callback_D():
-	try:
-		await ddiscord.callback()
-	except Exception:
-		pass
-
-	return redirect(url_for("dashboard"))
+    print("in callback")
+    try:
+        await ddiscord.callback()
+    except Exception as e:
+        print("error")
+        print(e)
+        pass
+    print("trying to redir")
+    print(url_for("dashboard"))
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/callback")
