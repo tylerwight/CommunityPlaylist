@@ -476,8 +476,8 @@ class CommunityPlaylistBot(commands.Bot):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-
-    load_dotenv()
+    dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+    load_dotenv(dotenv_path)
 
     callbackurl = os.getenv('CALLBACK')
     port = os.getenv('PORT')
