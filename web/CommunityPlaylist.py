@@ -13,6 +13,9 @@ from spotipy.oauth2 import SpotifyOAuth
 import mysql.connector
 import json
 import ast
+from config import ddiscord, app
+from routes import register_routes
+
 
 dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
 load_dotenv(dotenv_path)
@@ -34,16 +37,10 @@ add_bot_url = os.getenv('DISCORD_URL')
 spotify_scope = 'playlist-modify-public'
 intents = discord.Intents.all()
 
-#Setup Quart
-app = Quart(__name__)
-app.config["SECRET_KEY"] = "test123"
-app.config["DISCORD_CLIENT_ID"] = discord_cl_id
-app.config["DISCORD_CLIENT_SECRET"] = discord_cl_secret
-app.config["DISCORD_REDIRECT_URI"] = discord_redirect_uri
 ipc_client = Client(secret_key = "test")
-ddiscord = DiscordOAuth2Session(app)
 
 
+register_routes(app)
 
 def convert_ipc_response(ipc_response):
 	data = ipc_response.response
@@ -123,14 +120,14 @@ async def home():
 	
 	return await render_template("index.html", authorized = await ddiscord.authorized, username = "none")
 
-@app.route("/instructions")
-async def instructions():
-	authorized = await ddiscord.authorized
+# @app.route("/instructions")
+# async def instructions():
+# 	authorized = await ddiscord.authorized
 
-	if authorized:
-		return await render_template("instructions.html", authorized = await ddiscord.authorized, username = (await ddiscord.fetch_user()).name)
+# 	if authorized:
+# 		return await render_template("instructions.html", authorized = await ddiscord.authorized, username = (await ddiscord.fetch_user()).name)
 	
-	return await render_template("instructions.html", authorized = await ddiscord.authorized, username = "none")
+# 	return await render_template("instructions.html", authorized = await ddiscord.authorized, username = "none")
 
 @app.route("/login")
 async def login():
