@@ -14,7 +14,8 @@ import mysql.connector
 import json
 import ast
 
-load_dotenv()
+dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+load_dotenv(dotenv_path)
 logging.basicConfig(level=logging.INFO)
 
 #Setup vars
@@ -28,6 +29,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 discord_cl_id = os.getenv('DISCORD_CLIENT_ID')
 discord_cl_secret = os.getenv('DISCORD_CLIENT_SECRET')
 discord_redirect_uri = os.getenv('DISCORD_CLIENT_REDIRECT_URL')
+invited_users = json.loads(os.getenv('INVITED', '[]'))
 add_bot_url = os.getenv('DISCORD_URL')
 spotify_scope = 'playlist-modify-public'
 intents = discord.Intents.all()
@@ -98,17 +100,26 @@ def GetPlaylistID(username, playname, spotify_obj):
 
 #Quart endpoints
 
+def is_invited(user):
+	id = str(user.id)
+	if id in invited_users:
+		return True
+	return False
+
 @app.route("/")
 async def home():
 	# resp = await ipc_client.request("get_guild_data")
 	authorized = await ddiscord.authorized
-
+	print(invited_users)
 	# print(query_db("SELECT * from guilds"))
 	# print(resp)
 	# print(str(resp.response))
 
 	if authorized:
-		return await render_template("index.html", authorized = await ddiscord.authorized, username = (await ddiscord.fetch_user()).name)
+		if is_invited((await ddiscord.fetch_user())):
+			return await render_template("index.html", authorized = await ddiscord.authorized, username = (await ddiscord.fetch_user()).name)
+		return await render_template("not_invited.html")
+		
 	
 	return await render_template("index.html", authorized = await ddiscord.authorized, username = "none")
 
@@ -183,6 +194,8 @@ async def callback():
 async def dashboard():
 	if not await ddiscord.authorized:
 		return redirect(url_for("login")) 
+	if not is_invited((await ddiscord.fetch_user())):
+		return await render_template("not_invited.html")
 	authorized = await ddiscord.authorized
 	name = (await ddiscord.fetch_user()).name
 	user_guilds = await ddiscord.fetch_guilds()

@@ -43,12 +43,6 @@
 							<ul class="links">
 								<li><a href="{{url_for('home')}}">Home</a></li>
 								<li><a href="{{url_for('instructions')}}">Instructions</a></li>
-								{% if authorized %}
-								<li><a href="{{url_for('dashboard')}}">Dashboard</a></li>
-								<li><a href="{{url_for('logout')}}">Logout</a></li>
-								{% else %}
-								<li><a href="/login">Log In</a></li>
-								{%endif %}
 								
 								
 							</ul>
@@ -65,15 +59,8 @@
 								<img class="icon align-right" src="{{ url_for( 'static', filename = 'images/Spotify_icon.png') }}" alt="" />
 							</div>
 							<h2>CommunityPlaylist</h2>
-							<p>A Discord bot that monitors your discord server for Spotify links and creates a running playlist of the music. </p>
-							<p align="center">
-								{% if not authorized %}
-								<a href="/login" class="button">Login with discord</a>
-								{% else %}
-								<a href="/dashboard" class="button">Open Dashboard</a>
-								{%endif %}
-								<a href="/instructions" class="button">Read Instructions</a>
-							</p>
+							<p style="color: red; font-weight: 600;">Unfortunately due to Spotify API limits, Community Playlist is invite only (for now). Please send an email to invite@communityplaylist.org to be invited</p>
+
 						</div>
 					</section>
 
