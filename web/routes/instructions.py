@@ -6,8 +6,9 @@ instructions_bp = Blueprint('instructions', __name__)
 @instructions_bp.route("/instructions")
 async def instructions():
 	authorized = await ddiscord.authorized
+    user = await ddiscord.fetch_user()
 
 	if authorized:
-		return await render_template("instructions.html", authorized = await ddiscord.authorized, username = (await ddiscord.fetch_user()).name)
+		return await render_template("instructions.html", authorized = authorized, username = user.name)
 	
-	return await render_template("instructions.html", authorized = await ddiscord.authorized, username = "none")
+	return await render_template("instructions.html", authorized = authorized, username = "none")
