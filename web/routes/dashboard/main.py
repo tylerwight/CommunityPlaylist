@@ -1,13 +1,6 @@
-import os
-from dotenv import load_dotenv
-from quart import Quart, Blueprint, render_template, request, session, redirect, url_for
-import spotipy
-import spotipy.util as util
-from spotipy.oauth2 import SpotifyOAuth
+from quart import Blueprint, render_template, redirect, url_for
 from config import ddiscord, app
-import mysql.connector
-import ast
-from utils import is_invited, check_bot_exists, check_guild_admin, ipc_client, query_db
+from utils import is_invited
 
 
 
@@ -16,20 +9,24 @@ dashboard_main_bp = Blueprint('dashboard_main', __name__)
 
 @app.route("/dashboard")
 async def dashboard():
-	if not await ddiscord.authorized:
+	authorized = await ddiscord.authorized
+
+	if not authorized:
+		logging.info("Dashboard: Not authorized, redirecting")
 		return redirect(url_for("login")) 
 
-	authorized = await ddiscord.authorized
-	name = (await ddiscord.fetch_user()).name
-	if not is_invited((await ddiscord.fetch_user())):
-		return await render_template("not_invited.html", username=name, authorized=authorized)
+	user = await ddiscord.fetch_user()
+
+	if not is_invited(user):
+		logging.info("Dashboard: User is not invited")
+		return await render_template("not_invited.html", username=user.name, authorized=authorized)
 
 	user_guilds = await ddiscord.fetch_guilds()
 	guild_count = len(user_guilds)
 
-	guilds = []
+	admin_guilds = []
 	for guild in user_guilds:
 		if guild.permissions.administrator:		
-			guilds.append(guild)
+			admin_guilds.append(guild)
 	
-	return await render_template("dashboard.html", guild_count = guild_count, guilds = guilds, username=name, authorized=authorized)
+	return await render_template("dashboard.html", guild_count = guild_count, guilds = admin_guilds, username=user.name, authorized=authorized)
