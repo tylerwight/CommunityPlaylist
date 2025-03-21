@@ -4,6 +4,7 @@ import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth
 from config import ddiscord, app
 
+
 auth_bp = Blueprint('auth', __name__)
 
 

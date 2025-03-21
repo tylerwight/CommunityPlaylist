@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import json
 from quart import Blueprint, render_template
 from config import ddiscord, app
+from utils import is_invited
 
 home_bp = Blueprint("home", __name__) 
 
@@ -13,15 +14,15 @@ invited_users = json.loads(os.getenv('INVITED', '[]'))
 
 @app.route("/")
 async def home():
-	# resp = await ipc_client.request("get_guild_data")
-	authorized = await ddiscord.authorized
-	print(invited_users)
+    authorized = await ddiscord.authorized
 
+    
+    if authorized:
+        user = await ddiscord.fetch_user()
+        if is_invited(user):
+            return await render_template("index.html", authorized = authorized, username = user.name)
 
-	if authorized:
-		if is_invited((await ddiscord.fetch_user())):
-			return await render_template("index.html", authorized = await ddiscord.authorized, username = (await ddiscord.fetch_user()).name)
-		return await render_template("not_invited.html")
-		
-	
-	return await render_template("index.html", authorized = await ddiscord.authorized, username = "none")
+        return await render_template("not_invited.html", username=name, authorized=authorized)
+        
+    
+    return await render_template("index.html", authorized = authorized, username = "none")
