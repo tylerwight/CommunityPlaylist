@@ -37,7 +37,7 @@ async def callback_D():
 async def callback():
 	logging.info("Callback: Spotify callback initiated")
 	logging.info(f"Callback: We are working on {session.get('acting_guild', 'none')}")
-	cache_handler = spotipy.cache_handler.CacheFileHandler(username=session.get('acting_guild', 'none'))
+	cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path = f"../bot/.cache-{session.get('acting_guild', 'none')}")
 	auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=spotify_scope, open_browser=False, show_dialog=True, cache_handler=cache_handler)
 
 	if not ('code' in request.args):

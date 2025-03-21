@@ -44,7 +44,8 @@ async def dashboard_playlist(guild_id):
 
     input_playlist = (await request.form).get('playlist_input')
     try:
-        cache_handler = spotipy.cache_handler.CacheFileHandler(username=guild_id)
+        #cache_handler = spotipy.cache_handler.CacheFileHandler(username=guild_id)
+        cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path = f"../bot/.cache-{guild_id}")
         auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=spotify_scope, cache_handler=cache_handler)
 
         if not cache_handler.get_cached_token() == None:
