@@ -1,5 +1,4 @@
-import nest_asyncio
-nest_asyncio.apply()
+
 import os
 import re
 import discord
@@ -9,13 +8,6 @@ from discord.ext.ipc.objects import ClientPayload
 from typing import Dict
 from dotenv import load_dotenv
 import logging
-import spotipy
-import spotipy.util as util
-from spotipy.oauth2 import SpotifyOAuth
-from cogs.ping import ping
-import time
-import asyncio
-import threading
 import mysql.connector
 import json
 
