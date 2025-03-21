@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from utils import URIconverter
 
 
 
@@ -19,7 +20,7 @@ class get_playlist(commands.Cog):
             return
 
         convert="spotify:playlist:" + current_guild[6]
-        output_link=self.bot.URIconverter(convert)
+        output_link=URIconverter(convert)
         await ctx.channel.send("I am currently adding songs to this playlist: " + output_link)
 
 async def setup(bot):
