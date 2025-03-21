@@ -139,7 +139,7 @@ async def dashboard_spotdc(guild_id):
         logging.info(f"Dashboard/{guild_id}/spotdc: User is NOT an admin of this server. Rejecting.")
         return ("Not Authorized")
     
-    cachefile = (f".cache-{guild_id}")
+    cachefile = (f"../bot/.cache-{guild_id}")
     try:
         os.remove(cachefile)
         logging.info(f"Dashboard/{guild_id}/spotdc: {cachefile} successfully deleted Spotify data")
