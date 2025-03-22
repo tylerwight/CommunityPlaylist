@@ -4,7 +4,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import mysql.connector
 import logging
-from utils import check_guild_admin, ipc_client, query_db, GetPlaylistID
+from utils import check_guild_admin, query_db, GetPlaylistID, bot_api_call
 from config import ddiscord, app, sqluser, sqlpass, callbackurl, cid, secret, spotify_scope
 
 dashboard_spot_bp = Blueprint('dashboard_spot', __name__)
@@ -93,7 +93,10 @@ async def dashboard_playlist(guild_id):
     cursor.close()
     mydb.close()  
 
-    await ipc_client.request("update_guild_ipc", current_playlist = playlist_title, guild_id = guild_id)
+    response = bot_api_call(endpoint="update_guild", payload={"guild_id": guild_id}, method="POST")
+    if response:
+        logging.info(f"API call to bot response: {response.json()}")
+
     current_playlist = playlist_title
     logging.info(f"Dashboard/{guild_id}/playlist: Rendering dashboard_playlistOK.html with: {user.name}, {final_guild}, {authorized}, {current_playlist}")
     return await render_template("dashboard_playlistOK.html", username= user.name, guild = final_guild, authorized=authorized, current_playlist=current_playlist)

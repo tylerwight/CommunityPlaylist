@@ -4,11 +4,28 @@ from quart_discord import DiscordOAuth2Session
 from dotenv import load_dotenv
 import json
 import logging
+import colorlog
 
 dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
 load_dotenv(dotenv_path)
 
-logging.basicConfig(level=logging.INFO)
+handler = colorlog.StreamHandler()
+handler.setFormatter(colorlog.ColoredFormatter(
+    fmt='[%(asctime)s] [ComPlayWEB] [%(log_color)s%(levelname)s%(reset)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    log_colors={
+        'DEBUG':    'cyan',
+        'INFO':     'green',
+        'WARNING':  'yellow',
+        'ERROR':    'red',
+        'CRITICAL': 'bold_red',
+    }
+))
+
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[handler]
+)
 
 # Setup Quart app
 app = Quart(__name__)
@@ -26,6 +43,7 @@ cid = os.getenv('SPOTIPY_CLIENT_ID')
 secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 add_bot_url = os.getenv('DISCORD_URL')
 spotify_scope = 'playlist-modify-public'
+bot_api_url = "http://localhost:8090/"
 
 
 # Initialize Discord OAuth2 session

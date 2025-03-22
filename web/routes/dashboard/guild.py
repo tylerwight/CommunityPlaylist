@@ -4,7 +4,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import ast
 import logging
-from utils import is_invited, check_bot_exists, check_guild_admin, ipc_client, query_db
+from utils import is_invited, check_bot_exists, check_guild_admin, query_db, bot_api_call
 from config import ddiscord, app, callbackurl, cid, secret, add_bot_url, spotify_scope
 
 dashboard_guild_bp = Blueprint('dashboard_guild', __name__)
@@ -46,14 +46,19 @@ async def dashboard_server(guild_id):
 
 
 
-	##IPC stuff
-	##TODO: convert to rest API calls
-	channel_names = await ipc_client.request("get_channels", guild_id = guild_id)
-	logging.info(f"Dashboard/{guild_id}: response from get_channels ipc: {channel_names}. Attempting to eval")
-	if channel_names.response == None:
-		channel_names = [[0, "None"]]
+	response = bot_api_call(endpoint="channels", payload={"guild_id": guild_id}, method="POST")
+	if response:
+		try:
+			data = response.json()
+			logging.info(f"API call to bot response: {data}")
+			if data:
+				channel_names = data
+		except Exception as e:
+			logging.error(f"Failed to parse channel data: {e}")
 	else:
-		channel_names = ast.literal_eval(channel_names.response)
+		logging.warning("No response from bot API")
+
+	logging.info(f"Dashboard/{guild_id}: response from get_channels: {channel_names}.")
 		
 
 	current_channel_id = (query_db(f"SELECT watch_channel from guilds where guild_id={final_guild.id}"))

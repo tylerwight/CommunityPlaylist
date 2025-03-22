@@ -11,7 +11,6 @@ class on_guild_join(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         logging.info('===========================')
@@ -19,7 +18,7 @@ class on_guild_join(commands.Cog):
         logging.info('===========================')
 
         try:
-            mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
+            mydb = mysql.connector.connect(host = "localhost", user = self.bot.sqluser, password = self.bot.sqlpass, database = "discord")
             cursor = mydb.cursor()
         except:
             logging.error(f'error connecting to Mysql DB')

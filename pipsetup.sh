@@ -7,3 +7,4 @@ pip install Flask-WTF
 pip install quart
 pip install quart_discord
 pip install better-ipc
+pip install fastapi

@@ -2,8 +2,8 @@ from quart import Blueprint, render_template, redirect, url_for
 import mysql.connector
 import ast
 import logging
-from utils import check_guild_admin, ipc_client, query_db
-from config import ddiscord, app, sqluser, sqlpass
+from utils import check_guild_admin, query_db, bot_api_call
+from config import ddiscord, app, sqluser, sqlpass, bot_api_url
 
 dashboard_settings_bp = Blueprint('dashboard_settings', __name__)
 
@@ -23,12 +23,22 @@ async def dashboard_channel(guild_id):
 		logging.info(f"Dashboard/{guild_id}/channel: User is NOT an admin of this server. Rejecting.")
 		return ("Not Authorized")
 
-	channel_names = await ipc_client.request("get_channels", guild_id = guild_id)
-	logging.info(f"Dashboard/{guild_id}/channel: response from get_channels ipc: {channel_names}. Attempting to eval")
-	if channel_names.response == None:
-		channel_names = [[0, "None"]]
+	channel_names = [[0, "None"]]
+
+	response = bot_api_call(endpoint="channels", payload={"guild_id": guild_id}, method="POST")
+	if response:
+		try:
+			data = response.json()
+			logging.info(f"API call to bot response: {data}")
+			if data:
+				channel_names = data
+		except Exception as e:
+			logging.error(f"Failed to parse channel data: {e}")
 	else:
-		channel_names = ast.literal_eval(channel_names.response)
+		logging.warning("No response from bot API")
+
+	logging.info(f"Dashboard/{guild_id}/channel: response from get_channels: {channel_names}.")
+
 
 	current_channel = (query_db(f"SELECT watch_channel from guilds where guild_id={final_guild.id}"))
 	logging.info(f"Dashboard/{guild_id}/channel: current channel {current_channel}")
@@ -88,8 +98,12 @@ async def dashboard_toggle(guild_id):
 	cursor.close()
 	mydb.close()   
 
-	logging.info(f"Dashboard/{guild_id}/toggle: updating guild")
-	await ipc_client.request("update_guild_ipc", guild_id = guild_id)
+	logging.info(f"Dashboard/{guild_id}/toggle: Changed DB, asking bot to read from DB and update")
+
+	response = bot_api_call(endpoint="update_guild", payload={"guild_id": guild_id}, method="POST")
+	if response:
+		logging.info(f"API call to bot response: {response.json()}")
+
 
 	return redirect(f"/dashboard/{guild_id}")
 
@@ -119,6 +133,9 @@ async def dashboard_channel_set(guild_id, channel_id):
 	cursor.close()
 	mydb.close()   
 
-	await ipc_client.request("update_guild_ipc", guild_id = guild_id)
+	logging.info(f"Dashboard/{guild_id}/channel/{channel_id}: Changed DB, asking bot to read from DB and update")
+	response = bot_api_call(endpoint="update_guild", payload={"guild_id": guild_id}, method="POST")
+	if response:
+		logging.info(f"API call to bot response: {response.json()}")
 
 	return redirect(f"/dashboard/{guild_id}")
