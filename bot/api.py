@@ -2,7 +2,7 @@ import asyncio
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
-import uvicorn
+import uvicorn #uvicorn handled theading better than hypercorn
 import json
 
 app = FastAPI()

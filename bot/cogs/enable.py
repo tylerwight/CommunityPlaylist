@@ -17,13 +17,16 @@ class enable(commands.Cog):
                 current_guild = i
                 guild_index = index
 
+        current_guild_test = await self.bot.get_guild_data(str(id))
+        logging.info(f"current_guild_data funciton test: Trying: {id} got: {current_guild_test}")
+        # current_guild_test[self.bot.idx_enabled] = 0
 
-        if (self.bot.guild_data[guild_index][4] == 0):
-            self.bot.guild_data[guild_index][4] = 1
-            await ctx.channel.send(f"Enabled and monitoring for guild {self.bot.guild_data[guild_index][1]}")
+        if (self.bot.guild_data[guild_index][self.bot.idx_enabled] == 0):
+            self.bot.guild_data[guild_index][self.bot.idx_enabled] = 1
+            await ctx.channel.send(f"Enabled and monitoring for guild {self.bot.guild_data[guild_index][self.bot.idx_guild_name]}")
         else:
-            await ctx.channel.send(f"Disabled and not monitoring for guild {self.bot.guild_data[guild_index][1]}")
-            self.bot.guild_data[guild_index][4] = 0
+            await ctx.channel.send(f"Disabled and not monitoring for guild {self.bot.guild_data[guild_index][self.bot.idx_guild_name]}")
+            self.bot.guild_data[guild_index][self.bot.idx_enabled] = 0
 
         try:
             mydb = mysql.connector.connect(host = "localhost", user = self.bot.sqluser, password = self.bot.sqlpass, database = "discord")
@@ -32,7 +35,7 @@ class enable(commands.Cog):
             logging.error(f'error connecting to Mysql DB')
 
         sql = "UPDATE guilds set enabled = %s where guild_id = %s"
-        val = (self.bot.guild_data[guild_index][4], self.bot.guild_data[guild_index][0])
+        val = (self.bot.guild_data[guild_index][self.bot.idx_enabled], self.bot.guild_data[guild_index][self.bot.idx_guild_id])
         cursor.execute(sql, val)
         mydb.commit()
         cursor.close()

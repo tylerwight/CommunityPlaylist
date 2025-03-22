@@ -34,6 +34,14 @@ class CommunityPlaylistBot(commands.Bot):
         self.spotify_scope = 'playlist-modify-public'
 
 
+    async def get_guild_data(self, guild_id):
+        for guild in self.guild_data:
+            if guild[self.idx_guild_id] == guild_id:
+                logging.info(f"Found global guild data for:{guild_id}\n\t returning: {guild}")
+                return guild
+        return None
+
+
     async def update_guild(self, guild_id):
         logging.info(f"Reading from DB and updating internal state")
         guild = self.get_guild(guild_id)

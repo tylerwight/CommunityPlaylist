@@ -5,9 +5,6 @@ from config import invited_users, sqluser, sqlpass, bot_api_url
 
 
 
-
-
-
 def check_guild_admin(user_guilds, target_guild):
     logging.info(f"Checking if user is an admin of guild {target_guild}")
     for guild in user_guilds:
@@ -27,7 +24,6 @@ async def check_bot_exists(guild_id):
     data = response.json()
     logging.info(f"API call to bot response: {data}")
     
-
     if 'error' in data: 
         logging.info(f"Guild {guild_id} does not have the bot running: {data['error']}")
         return False

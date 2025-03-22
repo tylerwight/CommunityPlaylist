@@ -15,11 +15,11 @@ class get_playlist(commands.Cog):
             if (int(i[0]) == id):
                 current_guild = i
 
-        if current_guild[6] == None:
+        if current_guild[self.bot.idx_playlist_id] == None:
             await ctx.channel.send("No playlist setup to watch, please use the set_playlist command")
             return
 
-        convert="spotify:playlist:" + current_guild[6]
+        convert="spotify:playlist:" + current_guild[self.bot.idx_playlist_id]
         output_link=URIconverter(convert)
         await ctx.channel.send("I am currently adding songs to this playlist: " + output_link)
 
