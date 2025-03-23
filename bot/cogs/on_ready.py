@@ -1,77 +1,79 @@
 import discord
 from discord.ext import commands
-import logging
 import mysql.connector
-import spotipy
-import spotipy.util as util
-import re
-from spotipy.oauth2 import SpotifyOAuth
-
+import logging
 
 class on_ready(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-
     @commands.Cog.listener()
     async def on_ready(self):
-        logging.info(f'{self.bot.user} has connected to Discord!')        
+        logging.info(f'{self.bot.user} has connected to Discord!')
+
         try:
-            mydb = mysql.connector.connect(host = "localhost", user = self.bot.sqluser, password = self.bot.sqlpass, database = "discord")
+            mydb = mysql.connector.connect(
+                host="localhost",
+                user=self.bot.sqluser,
+                password=self.bot.sqlpass,
+                database="discord"
+            )
             cursor = mydb.cursor()
         except Exception as e:
-            logging.error(f'error connecting to Mysql DB error: {e}')
+            logging.error(f'Error connecting to MySQL DB: {e}')
+            return
 
-        cursor.execute("SELECT guild_id FROM guilds")
+        cursor.execute("SELECT * FROM guilds")
         existing_guilds = cursor.fetchall()
+        logging.debug(f"Existing guilds in DB: {existing_guilds}")
 
-        for guild in self.bot.guilds:
-            logging.info(f'Connected to {guild}')
-            duplicate = 0
+        #look through guilds that the bot is connected to, and compare them to guilds we have in the DB to match them up
+        for connected_guild in self.bot.guilds:
+            found = False
+            for existing_guild in existing_guilds:
+                if str(connected_guild.id) == existing_guild[0]:
+                    logging.info(f"found connected guild: {connected_guild.id} in DB:{existing_guild[0]}, Loading data")
+                    self.bot.guilds_state[existing_guild[0]] = {
+                        "guild_id":         existing_guild[0],
+                        "name":             existing_guild[1],
+                        "spotipy_username": existing_guild[2],
+                        "watch_channel":    existing_guild[3],
+                        "enabled":          existing_guild[4],
+                        "playlist_name":    existing_guild[5],
+                        "playlist_id":      existing_guild[6],
+                    }
+                    found = True
+                    break
 
-            #Check for guilds in DB
-            for x in existing_guilds:
-                for y in x:
-                    if str(guild.id) in y:
-                        duplicate = duplicate + 1
-                        logging.info(f"Found guild {guild} in DB. Loading it's information from DB")
-
-                        cursor.execute("SELECT * FROM guilds where guild_id=%s",([y]))
-                        records = cursor.fetchall()
-
-                        listed_records = [list(row) for row in records]
-                        logging.info(f"Data loaded from DB: {listed_records[0]}")
-
-                        self.bot.guild_data.append(listed_records[0])
-            
-
-            #Guild does not exist in DB, create it in the DB
-            if (duplicate == 0):
-                logging.info("New Guild detected, adding to DB")
-
+            if not found:
+                logging.info(f"Guild {connected_guild.id} not in DB, adding to DB.")
+                self.bot.guilds_state[str(connected_guild.id)] = {
+                    "guild_id":         str(connected_guild.id),
+                    "name":             connected_guild.name,
+                    "spotipy_username": "none",
+                    "watch_channel":    "",
+                    "enabled":          "0",
+                    "playlist_name":    "",
+                    "playlist_id":      "",
+                }
                 sql = "INSERT INTO guilds (guild_id,name,enabled, spotipy_username) VALUES (%s, %s, %s, %s)"
-                val = (str(guild.id),str(guild), 0, "tmp")
+                val = (self.bot.guilds_state[str(connected_guild.id)]["guild_id"],
+                       self.bot.guilds_state[str(connected_guild.id)]["name"],
+                       0, "tmp"
+                      )
                 cursor.execute(sql, val)
                 mydb.commit()
 
-                logging.info(f'I inserted {cursor.rowcount} rows using {guild.id} and {guild}')
-
-                item = [str(guild.id), str(guild), "tmp", None, 0, None, None]
-
-                self.bot.guild_data.append(item)
+        logging.info("Guild Data after on_ready:")
+        for data in self.bot.guilds_state.values():
+            logging.info(f"\n{data}")
 
 
-            if (duplicate > 1):
-                logging.error("Found duplicate guilds in the database? Something is wrong")
+
 
         cursor.close()
-        mydb.close()      
-
-        logging.info("===========================")
-        logging.info(f"All guild data loaded or created:")
-        for loadedguild in self.bot.guild_data:
-            logging.info(loadedguild)
-        logging.info("===========================")   
+        mydb.close()
+ 
 
 
 

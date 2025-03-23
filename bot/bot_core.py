@@ -21,7 +21,8 @@ class CommunityPlaylistBot(commands.Bot):
         self.spotify_secret = kwargs.pop('spotify_secret', None)
 
 
-        self.guild_data = [] #State of the guilds in memory {guild_id, name, Spotipy_username, watch_channel, enabled, playlist_name, playlist_id}
+        #self.guild_data = [] #State of the guilds in memory {guild_id, name, Spotipy_username, watch_channel, enabled, playlist_name, playlist_id}
+        self.guilds_state = {} # global state of all guilds (so we don't have to pull from mysql every time we need data)
         self.idx_guild_id = 0 #index id of guild_data to make more readable (probably should just use a dict)
         self.idx_guild_name = 1
         self.idx_spot_username = 2
@@ -30,7 +31,6 @@ class CommunityPlaylistBot(commands.Bot):
         self.idx_playlist_name = 5
         self.idx_playlist_id = 6
 
-        self.sp_cred_queue = []
         self.spotify_scope = 'playlist-modify-public'
 
 

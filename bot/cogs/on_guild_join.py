@@ -1,11 +1,6 @@
-import discord
-from discord.ext import commands
 import logging
 import mysql.connector
-import spotipy
-import spotipy.util as util
-import re
-from spotipy.oauth2 import SpotifyOAuth
+from discord.ext import commands
 
 class on_guild_join(commands.Cog):
     def __init__(self, bot):
@@ -14,54 +9,70 @@ class on_guild_join(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         logging.info('===========================')
-        logging.info(f'{guild} has  just added the discord bot!!')
+        logging.info(f'{guild} just added the discord bot!')
         logging.info('===========================')
 
         try:
-            mydb = mysql.connector.connect(host = "localhost", user = self.bot.sqluser, password = self.bot.sqlpass, database = "discord")
+            mydb = mysql.connector.connect(
+                host="localhost",
+                user=self.bot.sqluser,
+                password=self.bot.sqlpass,
+                database="discord"
+            )
             cursor = mydb.cursor()
-        except:
-            logging.error(f'error connecting to Mysql DB')
+        except Exception as e:
+            logging.error(f'Error connecting to MySQL DB: {e}')
+            return
 
-        duplicate = 0
-        cursor.execute("SELECT guild_id FROM guilds")
-        existing_guilds = cursor.fetchall()
+        guild_id_str = str(guild.id)
 
-        for x in existing_guilds:
-            for y in x:
-                if str(guild.id) in y:
-                    duplicate = duplicate + 1
-                    logging.info("This newly joined guild already exists in the DB? Loading it's data")
+        # Check if this guild already exists in the DB
+        cursor.execute("SELECT * FROM guilds WHERE guild_id = %s", (guild_id_str,))
+        record = cursor.fetchone()
 
-                    #get data from DB for existing guild
-                    cursor.execute("SELECT * FROM guilds where guild_id=%s",([y]))
-                    records = cursor.fetchall()
-                    #convert to list because it's a list of tuples by default
-                    listed_records = [list(row) for row in records]
-                    logging.info(f"data loaded for guild: {listed_records[0]}")
-
-                    self.bot.guild_data.append(listed_records[0]) 
-
-        #Guild does not exist in DB, create it in the DB
-        if (duplicate == 0):
+        if record is None:
             logging.info("New Guild detected, adding to DB")
 
-            sql = "INSERT INTO guilds (guild_id,name,enabled) VALUES (%s, %s, %s)"
-            val = (str(guild.id),str(guild), 0)
+            # Insert a minimal row into the database
+            sql = """INSERT INTO guilds (guild_id, name, enabled, spotipy_username)
+                     VALUES (%s, %s, %s, %s)"""
+            val = (guild_id_str, str(guild.name), 0, "none")
             cursor.execute(sql, val)
             mydb.commit()
 
-            logging.info(f'I inserted {cursor.rowcount} rows using {guild.id} and {guild}')
+            logging.info(f'Inserted {cursor.rowcount} rows for guild {guild_id_str} ({guild.name}).')
 
-            item = [str(guild.id), str(guild), 'tmp', None, 0, None, None]
-            self.bot.guild_data.append(item)
-        
-        if (duplicate > 1):
-            logging.info("Found duplicate guilds in the database? Something is wrong")
-        
+            # Add to guilds_state
+            self.bot.guilds_state[guild_id_str] = {
+                "guild_id":         guild_id_str,
+                "name":             str(guild.name),
+                "spotipy_username": "none",
+                "watch_channel":    "",
+                "enabled":          0,
+                "playlist_name":    "",
+                "playlist_id":      ""
+            }
+
+        else:
+            logging.info(f"This newly joined guild already exists in the DB. Loading data for {guild_id_str}.")
+
+            # record should match our  table schema
+
+            self.bot.guilds_state[guild_id_str] = {
+                "guild_id":         record[0],
+                "name":             record[1],
+                "spotipy_username": record[2],
+                "watch_channel":    record[3],
+                "enabled":          record[4],
+                "playlist_name":    record[5],
+                "playlist_id":      record[6]
+            }
+            
+            logging.info(f"Data loaded: {self.bot.guilds_state[guild_id_str]}")
 
         cursor.close()
-        mydb.close()      
+        mydb.close()
+    
 
 
 

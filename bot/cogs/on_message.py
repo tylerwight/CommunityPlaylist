@@ -6,108 +6,118 @@ import spotipy
 import spotipy.util as util
 import re
 from spotipy.oauth2 import SpotifyOAuth
-from utils import album_to_tracks, URIconverter
+from utils import album_to_tracks
 
 
 class on_message(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    #  Triggers when any message is sent on any connected guild 
     @commands.Cog.listener()
     async def on_message(self, message):
-        #ignore messages from the bot
-        if str(message.author.id) == str(self.bot.user.id):
+        if message.author == self.bot.user:
             return
-            
         if message.content.startswith("!"):
             return
-        
-        #get information about the guild this message applies to
-        id = message.guild.id
-        for i in self.bot.guild_data:
-            if (int(i[0]) == id):
-                current_guild = i
 
+        guild_id_str = str(message.guild.id)
+        current_guild = self.bot.guilds_state.get(guild_id_str)
 
-        #set Spotify username for auth from guild info/db
-        username=current_guild[2]
+        if not current_guild:
+            logging.error(f"No guild data found for guild {guild_id_str}, skipping message.")
+            return
 
-        logging.info(f"Message detected on guild: {current_guild}")
-        
-        #vairable setup to search for spotify links
-        channel = str(message.channel.id)
-        channel_name = self.bot.get_channel(message.channel.id)
-        textSearch = "spotify.com/track"
-        textSearch2 = "spotify.com/album"
+        logging.info(f"Message detected in guild {guild_id_str} => {current_guild}")
+        username = current_guild["spotipy_username"]
 
-        #Check if monitoring is enabled for this guild.
-        if current_guild[4] != 1:
+        channel_id_str = str(message.channel.id)
+        channel_obj = message.channel
+
+        if current_guild["enabled"] != 1:
             logging.info("Guild has bot disabled, skipping...")
             return
 
-        #Check if the message came from the channel we want to monitor
-        if channel != current_guild[3]:
+        if channel_id_str != current_guild["watch_channel"]:
             logging.info("Not the monitored channel for this guild, skipping...")
             return
 
-        #check if data exists for playlist and user
-
-
-
-        #if a spotify link is detected
-        if message.content.find(textSearch) != -1 or message.content.find(textSearch2) !=-1:
-            extracted = []
-            extracted.append(re.search("(?P<url>https?://[^\s]+)", message.content).group("url"))
-
-            logging.info("Found this link: ")
-            logging.info(extracted)
-            logging.info(f"creating auth manager with username {username}")
-            
-            #try to auth to spotify
-            try:
-                logging.info(f"ON_MESSAGE: trying to auth to spotify with:")
-
-                cache_handler = spotipy.cache_handler.CacheFileHandler(username=current_guild[0])
-                auth_manager=SpotifyOAuth(client_id=self.bot.spotify_cid, client_secret=self.bot.spotify_secret, redirect_uri=self.bot.callbackurl, scope=self.bot.spotify_scope, cache_handler=cache_handler)
-
-                #auth_manager=SpotifyOAuth(client_id=self.spotify_cid, client_secret=self.spotify_secret, redirect_uri=self.callbackurl, scope=self.spotify_scope, open_browser=True, show_dialog=True,cache_handler=cache_handler)
-                
-                if not cache_handler.get_cached_token() == None:
-                    print("Found cached token")
-                    spotify = spotipy.Spotify(auth_manager=auth_manager)
-                    print(spotify.me())
-                else:
-                    print("NO CACHED TOKEN!")
-                    await channel_name.send(' Found a spotify link, but failed spotify authentication. Please login to the website and check that you are authenticated to Spotify?')
-                    return
-
-                #spotify = spotipy.Spotify(auth_manager=auth_manager)
-                logging.info("Trying to print spotify connection:")
-                logging.info(spotify.current_user())
-            except:
-                await channel_name.send(' Found a spotify link, but failed spotify authentication. Please login to the website and check that you are authenticated to Spotify?')
-                logging.error("Could not authenticate to spotify")
+        text_track = "spotify.com/track"
+        text_album = "spotify.com/album"
+        if (text_track in message.content) or (text_album in message.content):
+            match = re.search(r"(?P<url>https?://[^\s]+)", message.content)
+            if not match:
+                logging.error(f"Found spotify.com link but couldn't extract a valid album/track URL")
+                channel_obj.send(f"Found spotify.com link but couldn't extract a valid album/track URL")
                 return
 
-            if 'spotify.com/album' in extracted[0]:
-                logging.info("Album found, adding all tracks")
+            found_link = match.group("url")
+            logging.info(f"Found a Spotify link: {found_link}")
+            logging.info(f"Creating Spotify auth manager with username: {current_guild['guild_id']}")
 
-                
-                extracted = album_to_tracks(extracted, spotify)
-                resulttrack = ''
-                resultartist = ''
+            # Spotify Auth
+            try:
+                cache_handler = spotipy.cache_handler.CacheFileHandler(username=current_guild["guild_id"])
+                auth_manager = SpotifyOAuth(
+                    client_id=self.bot.spotify_cid,
+                    client_secret=self.bot.spotify_secret,
+                    redirect_uri=self.bot.callbackurl,
+                    scope=self.bot.spotify_scope,
+                    cache_handler=cache_handler
+                )
+
+                if cache_handler.get_cached_token() is not None:
+                    logging.info("Found cached token")
+                    spotify = spotipy.Spotify(auth_manager=auth_manager)
+                    logging.info(f"Spotify user: {spotify.me()}")
+                else:
+                    logging.warning("No cached token found.")
+                    await channel_obj.send(
+                        "Found a spotify link, but failed Spotify authentication. "
+                        "Please login to the website and check your Spotify authentication."
+                    )
+                    return
+
+                logging.info("Authenticated to Spotify. Attempting to add track...")
+
+            except Exception as e:
+                logging.error(f"Could not authenticate to Spotify: {e}")
+                await channel_obj.send(
+                    "Found a spotify link, but failed Spotify authentication. "
+                    "Please login to the website and check your Spotify authentication."
+                )
+                return
+
+            # If it's an album link, expand to all tracks
+            extracted_tracks = []
+            if "spotify.com/album" in found_link:
+                logging.info("Album link detected, adding all tracks from album.")
+                extracted_tracks = album_to_tracks([found_link], spotify)
+                track_name = "AlbumTracks"
+                resultartist_name = "Various"
             else:
-                resulttrack = spotify.track(extracted[0], market=None)
-                resultartist = resulttrack['artists'][0]['name']
-                resulttrack = resulttrack['name']
-            
-            
-            logging.info(f'adding {resulttrack} by {resultartist}')
+                # Single track
+                track_data = spotify.track(found_link)
+                track_name = track_data['name']
+                resultartist_name = track_data['artists'][0]['name']
+                extracted_tracks = [found_link]  # the track's URL/URI
 
-            logging.info(f"attempting to add song to playlist id {current_guild[6]}")
-            spotify.user_playlist_add_tracks(username, current_guild[6], extracted )
-            await channel_name.send(f"I have added the song {resulttrack} by {resultartist} to this playlist: <{URIconverter('spotify:playlist:' + current_guild[6])}>")
+            logging.info(f'Adding "{track_name}" by {resultartist_name} to playlist.')
+            playlist_id = current_guild["playlist_id"]
+            spotify.user_playlist_add_tracks(username, playlist_id, extracted_tracks)
+
+
+            playlist_url = f"https://open.spotify.com/playlist/{playlist_id}"
+
+            if "spotify.com/album" in found_link:
+                await channel_obj.send(
+                    f"I have added the album '{track_name}' by {resultartist_name} "
+                    f"to playlist {current_guild['playlist_name']}: <{playlist_url}>"
+                )
+            else:
+                await channel_obj.send(
+                    f"I have added the song '{track_name}' by {resultartist_name} "
+                    f"to playlist {current_guild['playlist_name']}: <{playlist_url}>"
+                )
 
 
 
