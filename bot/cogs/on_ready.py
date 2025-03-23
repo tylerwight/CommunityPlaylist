@@ -15,8 +15,7 @@ class on_ready(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        logging.info(f'{self.bot.user} has connected to Discord!')
-        
+        logging.info(f'{self.bot.user} has connected to Discord!')        
         try:
             mydb = mysql.connector.connect(host = "localhost", user = self.bot.sqluser, password = self.bot.sqlpass, database = "discord")
             cursor = mydb.cursor()

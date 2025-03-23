@@ -19,6 +19,9 @@ class on_message(commands.Cog):
         #ignore messages from the bot
         if str(message.author.id) == str(self.bot.user.id):
             return
+            
+        if message.content.startswith("!"):
+            return
         
         #get information about the guild this message applies to
         id = message.guild.id
@@ -41,13 +44,11 @@ class on_message(commands.Cog):
         #Check if monitoring is enabled for this guild.
         if current_guild[4] != 1:
             logging.info("Guild has bot disabled, skipping...")
-            await self.bot.process_commands(message)
             return
 
         #Check if the message came from the channel we want to monitor
         if channel != current_guild[3]:
             logging.info("Not the monitored channel for this guild, skipping...")
-            await self.bot.process_commands(message)
             return
 
         #check if data exists for playlist and user
@@ -110,7 +111,6 @@ class on_message(commands.Cog):
 
 
 
-        await self.bot.process_commands(message)
 
 
 async def setup(bot):
