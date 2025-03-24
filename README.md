@@ -52,6 +52,9 @@ INVITED = '["<discord_user_id>", "<discord_user_id>"]'
 - [ ] Store Spotify keys in a better place
 - [ ] Make better setup script
 - [ ] redesign database schema
+- [ ] add testing
+- [ ] add automated deploying/updating
+- [ ] add automated testing
 
 
 

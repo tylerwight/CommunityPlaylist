@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 import uvicorn #uvicorn handled theading better than hypercorn
 import json
+from config import api_logging_config
 
 app = FastAPI()
 
@@ -45,36 +46,6 @@ async def update_guild_data(data: GuildRequest):
 
 
 def run_api():
-    logging_config = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "default": {
-                "format": "[%(asctime)s] [api] [%(levelname)s] %(message)s",
-            },
-        },
-        "handlers": {
-            "default": {
-                "formatter": "default",
-                "class": "logging.StreamHandler",
-            },
-        },
-        "loggers": {
-            "uvicorn": {
-                "handlers": ["default"],
-                "level": "INFO",
-            },
-            "uvicorn.error": {
-                "level": "INFO",
-                "handlers": ["default"],
-                "propagate": False,
-            },
-            "uvicorn.access": {
-                "handlers": ["default"],
-                "level": "INFO",
-                "propagate": False,
-            },
-        },
-    }
-    uvicorn.run("api:app", host="0.0.0.0", port=8090, log_config=logging_config)
+
+    uvicorn.run("api:app", host="0.0.0.0", port=8090, log_config=api_logging_config)
 

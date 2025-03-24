@@ -17,3 +17,4 @@ templates/dashboard_test.html
 cert.pem
 key.pem
 Spotipy_sql.py
+logs/
