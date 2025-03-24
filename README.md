@@ -1,77 +1,57 @@
 # CommunityPlaylist
-A Discord bot that monitors your discord server for Spotify links and creates a running playist of the music. 
-A frontend for said discord bot to manage bot status, setup, and authentication
+A Python Discord bot that monitors your Discord server for Spotify links and creates a running playlist of the music.
 
-This bot supports having multiple separate discord servers. Keeps track of it's state in a mysql database and picks up where it left off on startup.
+At a glance:
+- Uses discord.py and spotipy to interface with Discord and Spotify
+- Web frontend (flask/quart) for users to manage bot status, configuration, and Spotify authentication.
+- Frontend and bot communicate with FastAPI api calls
+- Users quart_discord for website's "login with Discord" functionality
+- Full multi user support with the intention on it being a public application
+- At the moment the offical website is invite only as I am working toward getting the Spotify app approved.
+
+https://communityplaylist.org
+
+![web](image.png)
 
 
+Bot commands:
+- !get_playlist
+- all other management and configuration of the bot is done on the web interface.
 
+## How To Install:
+- use setup.sh to create a mysql server with database named "discord" and correct schema
+- use pipsetup.sh to ensure you have all the correct python libraries
+- create a .env file in the root of this repo with the below data (both the web and bot look at the same .env file in root)
+```
+DISCORD_TOKEN=
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+MYSQL_USER=discord
+MYSQL_PASS=
+SPOTIPY_CLIENT_ID=
+SPOTIPY_CLIENT_SECRET=
+DISCORD_URL= "<url to add bot to discord server>"
+DISCORD_CLIENT_REDIRECT_URL="<url>/callback_D"
+CALLBACK="<url>/callback"
+PORT = "8080"
+INVITED = '["<discord_user_id>", "<discord_user_id>"]'
+```
+- run `cd web; bash ./start_webserver.sh` to start website
+- run `cd bot; python3 CommunityPlaylistbot.py` to start the bot
+- navigate to the web interface to add your bot to a server and test
 
 ## TODO:
 - [x] Add web frontent to manage authentication
 - [x] Use discord.py's Cogs for commands
 - [x] sql connection
-- [ ] clean up sql code and architecture
-- [x] steamline spotify authentication (using web frontend)
-- [ ] add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
+- [x] clean up sql code and architecture
+- [x] streamline spotify authentication (using web frontend)
+- [x] add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
 - [ ] update to discords built in command prefix stuff
-- [ ] Write new HOW-TO section for the major updates
-- [ ] Update readme with new howto info
+- [x] Update readme with new howto info
+- [ ] Store Spotify keys in a better place
+- [ ] Make better setup script
+- [ ] redesign database schema
 
 
 
-# OLD HOW-TO THIS IS LEGACY AND WILL BE REPLACED
-
-## How to Install:
-
-
-* Run setup.sh to prep the environment. This will install python, all pip packages, mysql, and prep mysql for use with SpotWatcher. Be sure to change your mysql password and note the username/password
-* Create a bot in the Discord developer Portal and auth it to your discord server. Be sure to note the bot token
-* Create a spotify app on the spotify developer portal. Be sure to note the spotify client id and secret.
-* Create a file in the same directory as the script named exactly ".env". This is a file to hold secrets.
-* This .env file will house all our secrets for both spotify and discord. Here is how the file should look:
-
-```
-DISCORD_TOKEN='<Token>'
-MYSQL_USER='discord'
-MYSQL_PASS='<mysql password>'
-SPOTIPY_CLIENT_ID='<spotify_client_id>'
-SPOTIPY_CLIENT_SECRET='<spotify_client_secret>'
-CALLBACK="<URL for Spotify Callback>" (http://localhost:8080/callback for testing locally)
-PORT = "8080"
-```
-
-Once everything has been been setup, start the bot like this:
-```
-python3 SpotWatcher.py
-```
-
-
-
-## How to Use:
-
-note: default command prefix is "_" so be defualt to run the auth_me command will be "_auth_me"
-
-1. Use the "auth_me <spotify username>" command to authenticate to spotify.
-    - Get the username by logging into spotify on a web browser and going to account section, it could be a random bunch of numbers/letters
-    - Click the link the bot posts to open spotify in a browser where you are logged into your account you want to share
-    - Click authroize, it will redirect to a url that will fail, it may take a few seconds to timeout.
-    - Read the URL in the address bar.In the url there is a section "code=xxxxyyyyxxxxyy". Copy the entire code, only the data after "code="
-    - Paste it in the chat channel with the bot where it asked
-
-2. Use "set_playlist <name>" to choose a spotify playlist to put stuff in. If it exists in your account already it will add to it, if it doesn't it will create it.
-
-3. Use "set_channel <channel_id>" to choose which channel it watches for spotify links. You can get the text channel id by right clicking -> copy link. Paste the link somewhere to look at it. The channel ID is the final (right-most) number.
-
-4. Use the "enable" command to turn on (or off) monitoring of the channel for spotify links. "_enable"
-
-5. Paste a spotify link in the channel you set. If all is well, it should be automatically added to the playlist you setup, using the account you authenticated with.
-
-
-## Commands:
-
-- auth_me <spotify username>    - The authentication process for a spotify user to allow the bot to post
-- enable                        - Enables or disable the bot actively monitoring and adding songs.
-- get_playlist                  - Displays the spotify playlist currently in use for adding songs.
-- set_channel <channel ID>      - Set/change the channel ID of the channel you want the bot to monitor
-- set_playlist <playlist_name>  - Set/change the spotify playlist to use for adding songs. If it finds an existing playlist it will add to it, otherwise it will create a new one.

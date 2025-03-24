@@ -13,8 +13,8 @@ class get_playlist(commands.Cog):
         current_guild = self.bot.guilds_state.get(guild_id)
 
         if not current_guild:
-            await ctx.send("Bot doesn't regonize this guild, something is very wrong.")
-            logging.error(f"get_playlist: Guild {guild_id} not found in guilds_state.")
+            await ctx.send("Bot doesn't regonize this guild, something is wrong.")
+            logging.error(f"get_playlist: Guild {guild_id} not found in data.")
             return
 
         playlist_id = current_guild["playlist_id"]
@@ -24,7 +24,7 @@ class get_playlist(commands.Cog):
 
         convert = "spotify:playlist:" + playlist_id
         output_link = URIconverter(convert)
-        await ctx.send("The current Community Playlist is: " + output_link)
+        await ctx.send(f"The current Community Playlist is: {output_link}")
 
 async def setup(bot):
     await bot.add_cog(get_playlist(bot))

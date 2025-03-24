@@ -17,8 +17,6 @@ class on_message(commands.Cog):
     async def on_message(self, message):
         if message.author == self.bot.user:
             return
-        if message.content.startswith("!"):
-            return
 
         guild_id_str = str(message.guild.id)
         current_guild = self.bot.guilds_state.get(guild_id_str)
