@@ -18,7 +18,9 @@ Bot commands:
 - !get_playlist
 - all other management and configuration of the bot is done on the web interface.
 
-## How To Install:
+## How To Build:
+Steps to setup and run this code
+
 - use setup.sh to create a mysql server with database named "discord" and correct schema
 - use pipsetup.sh to ensure you have all the correct python libraries
 - create a .env file in the root of this repo with the below data (both the web and bot look at the same .env file in root)
@@ -55,6 +57,7 @@ INVITED = '["<discord_user_id>", "<discord_user_id>"]'
 - [ ] add testing
 - [ ] add automated deploying/updating
 - [ ] add automated testing
+- [ ] update pictures on website
 
 
 
