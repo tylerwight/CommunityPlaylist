@@ -4,7 +4,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import mysql.connector
 import logging
-from community_playlist.web.utils import check_guild_admin, GetPlaylistID, bot_api_call
+from community_playlist.web.utils import GetPlaylistID, bot_api_call, require_admin
 from community_playlist.db.spotipy_handler import CacheSQLHandler
 from community_playlist.web.config import ddiscord, app, sqluser, sqlpass, callbackurl, cid, secret, spotify_scope, enkey
 import community_playlist.db as db
@@ -13,22 +13,10 @@ dashboard_spot_bp = Blueprint('dashboard_spot', __name__)
 
 
 @app.route("/dashboard/<int:guild_id>/playlist", methods=['GET', 'POST'])
-async def dashboard_playlist(guild_id):
-    authorized = await ddiscord.authorized
-    if not authorized:
-        logging.info(f"Dashboard/{guild_id}/playlist: not authorized, redirecting")
-        return redirect(url_for("login")) 
-
-    user_guilds = await ddiscord.fetch_guilds()
-    admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
-    
+@require_admin()
+async def dashboard_playlist(guild_id, final_guild):    
     user = await ddiscord.fetch_user()
 
-    logging.info(f"Dashboard/{guild_id}/playlist: User admin status:{admin_okay}")
-    if admin_okay != True:
-        logging.info(f"Dashboard/{guild_id}/playlist: User is NOT an admin of this server. Rejecting.")
-        return ("Not Authorized")
-    
     playlist_info = db.guild.get_playlist(final_guild.id)
     if not playlist_info or not playlist_info["name"]:
         current_playlist = "NONE"
@@ -39,8 +27,8 @@ async def dashboard_playlist(guild_id):
 
 
     if request.method == 'GET':
-        logging.info(f"Dashboard/{guild_id}/playlist: GET request, returning {user.name}, {final_guild}, {authorized}, {current_playlist}")
-        return await render_template("dashboard_playlist.html", username=user.name, guild = final_guild, authorized=authorized, current_playlist=current_playlist)
+        logging.info(f"Dashboard/{guild_id}/playlist: GET request, returning {user.name}, {final_guild}, {True}, {current_playlist}")
+        return await render_template("dashboard_playlist.html", username=user.name, guild = final_guild, authorized=True, current_playlist=current_playlist)
 
     if request.method != 'POST':
         return (f"error, not POST or GET?")
@@ -97,8 +85,8 @@ async def dashboard_playlist(guild_id):
         logging.info(f"API call to bot response: {response.json()}")
 
     current_playlist = playlist_title
-    logging.info(f"Dashboard/{guild_id}/playlist: Rendering dashboard_playlistOK.html with: {user.name}, {final_guild}, {authorized}, {current_playlist}")
-    return await render_template("dashboard_playlistOK.html", username= user.name, guild = final_guild, authorized=authorized, current_playlist=current_playlist)
+    logging.info(f"Dashboard/{guild_id}/playlist: Rendering dashboard_playlistOK.html with: {user.name}, {final_guild}, {True}, {current_playlist}")
+    return await render_template("dashboard_playlistOK.html", username= user.name, guild = final_guild, authorized=True, current_playlist=current_playlist)
 
 
     
@@ -107,40 +95,20 @@ async def dashboard_playlist(guild_id):
 
 
 @app.route("/dashboard/<int:guild_id>/spotauth")
-async def dashboard_spotauth(guild_id):
-    authorized = await ddiscord.authorized
-    if not authorized:
-        return redirect(url_for("login")) 
+@require_admin()
+async def dashboard_spotauth(guild_id, final_guild):
 
-    user_guilds = await ddiscord.fetch_guilds()
-    admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
-
-    logging.info(f"Dashboard/{guild_id}/spotauth: User admin status:{admin_okay}")
-    if admin_okay != True:
-        logging.info(f"Dashboard/{guild_id}/spotauth: User is NOT an admin of this server. Rejecting.")
-        return ("Not Authorized")
-    
     auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=spotify_scope, open_browser=False, show_dialog=True)
     auth_url = auth_manager.get_authorize_url()
     session['acting_guild'] = guild_id
+
     return redirect(auth_url)
 
 
 
 @app.route("/dashboard/<int:guild_id>/spotdc")
-async def dashboard_spotdc(guild_id):
-    authorized = await ddiscord.authorized
-    if not authorized:
-        return redirect(url_for("login")) 
-
-    user_guilds = await ddiscord.fetch_guilds()
-    admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
-
-    logging.info(f"Dashboard/{guild_id}/spotdc: User admin status:{admin_okay}")
-    if admin_okay != True:
-        logging.info(f"Dashboard/{guild_id}/spotdc: User is NOT an admin of this server. Rejecting.")
-        return ("Not Authorized")
-    
+@require_admin()
+async def dashboard_spotdc(guild_id, final_guild):
 
     db.guild.update_token(guild_id, "NULL")
 

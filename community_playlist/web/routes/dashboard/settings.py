@@ -1,7 +1,7 @@
 from quart import Blueprint, render_template, redirect, url_for
 import mysql.connector
 import logging
-from community_playlist.web.utils import check_guild_admin, bot_api_call
+from community_playlist.web.utils import bot_api_call, require_admin
 from community_playlist.web.config import ddiscord, app, sqluser, sqlpass, bot_api_url
 import community_playlist.db as db
 
@@ -9,20 +9,10 @@ dashboard_settings_bp = Blueprint('dashboard_settings', __name__)
 
 
 @app.route("/dashboard/<int:guild_id>/channel")
-async def dashboard_channel(guild_id):
-	authorized = await ddiscord.authorized
-	if not authorized:
-		logging.info("Dashboard/{guild_id}/channel: not authorized, redirecting")
-		return redirect(url_for("login")) 
-	user_guilds = await ddiscord.fetch_guilds()
-	admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
+@require_admin()
+async def dashboard_channel(guild_id, final_guild):
+
 	user = await ddiscord.fetch_user()
-
-	logging.info(f'Dashboard/{guild_id}/channel: User admin status:{admin_okay}')
-	if admin_okay != True:
-		logging.info(f"Dashboard/{guild_id}/channel: User is NOT an admin of this server. Rejecting.")
-		return ("Not Authorized")
-
 	channel_names = [[0, "None"]]
 
 	response = bot_api_call(endpoint="channels", payload={"guild_id": guild_id}, method="POST")
@@ -50,32 +40,19 @@ async def dashboard_channel(guild_id):
 
 
 	for target_channel in channel_names:
-		logging.info(f"Dashboard/{guild_id}/channel: 0: {target_channel[0]} 1: {target_channel[1]} current_channel: {current_channel}")
 		if str(target_channel[0]) == current_channel:
 			current_channel = target_channel[1]
 			break
-	logging.info(f"Dashboard/{guild_id}/channel: loading dashboard_channel.html with: {user.name}, {final_guild}, {authorized}, {channel_names}, {current_channel}")
-	return await render_template("dashboard_channel.html", username=user.name, guild = final_guild, authorized=authorized, channel_names=channel_names, current_channel=current_channel)
+	
+	logging.info(f"Dashboard/{guild_id}/channel: loading dashboard_channel.html with: {user.name}, {final_guild}, {True}, {channel_names}, {current_channel}")
+	return await render_template("dashboard_channel.html", username=user.name, guild = final_guild, authorized=True, channel_names=channel_names, current_channel=current_channel)
 
 
 
 
 @app.route("/dashboard/<int:guild_id>/toggle")
-async def dashboard_toggle(guild_id):
-	authorized = await ddiscord.authorized
-	if not authorized:
-		logging.info("Dashboard/{guild_id}/toggle: not authorized, redirecting")
-		return redirect(url_for("login")) 
-
-
-	user_guilds = await ddiscord.fetch_guilds()
-	admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
-
-	logging.info(f'Dashboard/{guild_id}/toggle: User admin status:{admin_okay}')
-	if admin_okay != True:
-		logging.info(f"Dashboard/{guild_id}/toggle: User is NOT an admin of this server. Rejecting.")
-		return ("Not Authorized")
-	
+@require_admin() #injects final_guild
+async def dashboard_toggle(guild_id, final_guild):
 
 	bot_enabled = db.guild.get_enabled_status(final_guild.id)
 	if bot_enabled is None:
@@ -106,20 +83,9 @@ async def dashboard_toggle(guild_id):
 
 
 @app.route("/dashboard/<int:guild_id>/channel/<int:channel_id>")
-async def dashboard_channel_set(guild_id, channel_id):
-	authorized = await ddiscord.authorized
-	if not authorized:
-		logging.info("Dashboard/{guild_id}/channel/{channel_id}: not authorized, redirecting")
-		return redirect(url_for("login")) 
+@require_admin() #injects final_guild
+async def dashboard_channel_set(guild_id, channel_id, final_guild):
 
-	user_guilds = await ddiscord.fetch_guilds()
-	admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
-
-	logging.info("Dashboard/{guild_id}/channel/{channel_id}: User admin status:{admin_okay}")
-	if admin_okay != True:
-		logging.info("Dashboard/{guild_id}/channel/{channel_id}: User is NOT an admin of this server. Rejecting.")
-		return ("Not Authorized")
-	
 	db.guild.set_watch_channel(guild_id, channel_id)
 
 	logging.info(f"Dashboard/{guild_id}/channel/{channel_id}: Changed DB, asking bot to read from DB and update")

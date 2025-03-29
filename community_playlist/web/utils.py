@@ -31,6 +31,7 @@ def require_admin():
         return wrapper
     return decorator
 
+
 def check_guild_admin(user_guilds, target_guild):
     logging.info(f"Checking if user is an admin of guild {target_guild}")
     for guild in user_guilds:
