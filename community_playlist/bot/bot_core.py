@@ -88,10 +88,13 @@ class CommunityPlaylistBot(commands.Bot):
 
  
     async def setup_hook(self):
-        for filename in os.listdir('./cogs'):
+        cog_dir = os.path.join(os.path.dirname(__file__), 'cogs')
+
+        for filename in os.listdir(cog_dir):
             if filename.endswith('.py') and not filename.startswith('__'):
-                await self.load_extension(f'cogs.{filename[:-3]}')
-                print(f"Loaded Cog: {filename[:-3]}")
+                ext = f'community_playlist.bot.cogs.{filename[:-3]}'
+                await self.load_extension(ext)
+                print(f"Loaded Cog: {ext}")
         
 
     async def commit_to_db(self, guild_id, columns):

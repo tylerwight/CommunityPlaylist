@@ -1,8 +1,8 @@
 import os
 from dotenv import load_dotenv
-from bot_core import CommunityPlaylistBot
-from config import callbackurl, port, sqluser, sqlpass, cid, secret, TOKEN, spotify_scope
-import api
+from community_playlist.bot.bot_core import CommunityPlaylistBot
+from community_playlist.bot.config import callbackurl, port, sqluser, sqlpass, cid, secret, TOKEN, spotify_scope
+import community_playlist.bot.api as api
 import discord
 import threading
 

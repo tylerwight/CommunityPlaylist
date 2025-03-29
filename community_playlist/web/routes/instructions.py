@@ -1,5 +1,5 @@
 from quart import Blueprint, render_template
-from config import ddiscord
+from community_playlist.web.config import ddiscord
 
 instructions_bp = Blueprint('instructions', __name__)
 

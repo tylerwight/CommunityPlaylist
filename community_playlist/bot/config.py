@@ -8,7 +8,7 @@ import base64
 
 #App variables config
 
-dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", ".env"))
 load_dotenv(dotenv_path)
 
 callbackurl = os.getenv('CALLBACK')

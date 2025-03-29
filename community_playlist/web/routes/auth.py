@@ -2,8 +2,8 @@ from quart import Blueprint, request, session, redirect, url_for
 import spotipy
 import logging
 from spotipy.oauth2 import SpotifyOAuth
-from db import CacheSQLHandler
-from config import ddiscord, app, callbackurl, cid, secret, spotify_scope, sqluser, sqlpass, enkey
+from community_playlist.db.spotipy_handler import CacheSQLHandler
+from community_playlist.web.config import ddiscord, app, callbackurl, cid, secret, spotify_scope, sqluser, sqlpass, enkey
 
 
 auth_bp = Blueprint('auth', __name__)

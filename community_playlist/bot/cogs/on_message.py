@@ -6,9 +6,9 @@ import spotipy
 import spotipy.util as util
 import re
 from spotipy.oauth2 import SpotifyOAuth
-from utils import album_to_tracks
-from db import CacheSQLHandler
-from config import sqluser, sqlpass, enkey
+from community_playlist.bot.utils import album_to_tracks
+from community_playlist.db.spotipy_handler import CacheSQLHandler
+from community_playlist.bot.config import sqluser, sqlpass, enkey
 
 
 class on_message(commands.Cog):

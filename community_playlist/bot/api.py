@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 import uvicorn #uvicorn handled theading better than hypercorn
 import json
-from config import api_logging_config
+from community_playlist.bot.config import api_logging_config
 
 app = FastAPI()
 
@@ -47,5 +47,5 @@ async def update_guild_data(data: GuildRequest):
 
 def run_api():
 
-    uvicorn.run("api:app", host="0.0.0.0", port=8090, log_config=api_logging_config)
+    uvicorn.run("community_playlist.bot.api:app", host="0.0.0.0", port=8090, log_config=api_logging_config)
 

@@ -1,7 +1,7 @@
 import mysql.connector
 import logging
 import requests
-from config import invited_users, sqluser, sqlpass, bot_api_url
+from community_playlist.web.config import invited_users, sqluser, sqlpass, bot_api_url
 
 
 

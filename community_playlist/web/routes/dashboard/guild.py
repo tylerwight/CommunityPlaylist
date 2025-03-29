@@ -2,11 +2,10 @@
 from quart import Blueprint, render_template, redirect, url_for
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-import ast
 import logging
-from utils import is_invited, check_bot_exists, check_guild_admin, query_db, bot_api_call
-from db import CacheSQLHandler
-from config import ddiscord, app, callbackurl, cid, secret, add_bot_url, spotify_scope, sqluser, sqlpass, enkey
+from community_playlist.web.utils import is_invited, check_bot_exists, check_guild_admin, query_db, bot_api_call
+from community_playlist.db.spotipy_handler import CacheSQLHandler
+from community_playlist.web.config import ddiscord, app, callbackurl, cid, secret, add_bot_url, spotify_scope, sqluser, sqlpass, enkey
 
 dashboard_guild_bp = Blueprint('dashboard_guild', __name__)
 

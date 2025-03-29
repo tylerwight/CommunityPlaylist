@@ -1,9 +1,8 @@
 from quart import Blueprint, render_template, redirect, url_for
 import mysql.connector
-import ast
 import logging
-from utils import check_guild_admin, query_db, bot_api_call
-from config import ddiscord, app, sqluser, sqlpass, bot_api_url
+from community_playlist.web.utils import check_guild_admin, query_db, bot_api_call
+from community_playlist.web.config import ddiscord, app, sqluser, sqlpass, bot_api_url
 
 dashboard_settings_bp = Blueprint('dashboard_settings', __name__)
 

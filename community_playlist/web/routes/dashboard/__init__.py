@@ -1,0 +1,4 @@
+from community_playlist.web.routes.dashboard.main import dashboard_main_bp
+from community_playlist.web.routes.dashboard.guild import dashboard_guild_bp
+from community_playlist.web.routes.dashboard.settings import dashboard_settings_bp
+from community_playlist.web.routes.dashboard.spot import dashboard_spot_bp

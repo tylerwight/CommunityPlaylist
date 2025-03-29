@@ -4,9 +4,9 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import mysql.connector
 import logging
-from utils import check_guild_admin, query_db, GetPlaylistID, bot_api_call
-from db import CacheSQLHandler
-from config import ddiscord, app, sqluser, sqlpass, callbackurl, cid, secret, spotify_scope, enkey
+from community_playlist.web.utils import check_guild_admin, query_db, GetPlaylistID, bot_api_call
+from community_playlist.db.spotipy_handler import CacheSQLHandler
+from community_playlist.web.config import ddiscord, app, sqluser, sqlpass, callbackurl, cid, secret, spotify_scope, enkey
 
 dashboard_spot_bp = Blueprint('dashboard_spot', __name__)
 

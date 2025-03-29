@@ -1,8 +1,8 @@
 from quart import Quart
-from routes.dashboard import dashboard_main_bp, dashboard_guild_bp, dashboard_settings_bp, dashboard_spot_bp
-from routes.auth import auth_bp
-from routes.instructions import instructions_bp
-from routes.home import home_bp 
+from community_playlist.web.routes.dashboard import dashboard_main_bp, dashboard_guild_bp, dashboard_settings_bp, dashboard_spot_bp
+from community_playlist.web.routes.auth import auth_bp
+from community_playlist.web.routes.instructions import instructions_bp
+from community_playlist.web.routes.home import home_bp 
 
 def register_routes(app: Quart):
     app.register_blueprint(dashboard_main_bp)

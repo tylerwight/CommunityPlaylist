@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from utils import URIconverter
+from community_playlist.bot.utils import URIconverter
 
 
 class get_playlist(commands.Cog):
