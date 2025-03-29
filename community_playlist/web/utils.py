@@ -1,9 +1,35 @@
+from quart import redirect, url_for, request
 import mysql.connector
 import logging
 import requests
-from community_playlist.web.config import invited_users, sqluser, sqlpass, bot_api_url
+from functools import wraps
+from community_playlist.web.config import invited_users, sqluser, sqlpass, bot_api_url, ddiscord
 
+def require_admin():
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            guild_id = kwargs.get("guild_id")
+            if not guild_id:
+                return "Missing guild_id", 400
 
+            authorized = await ddiscord.authorized
+            if not authorized:
+                logging.info(f"Dashboard/{guild_id}: Not authorized, redirecting to login")
+                return redirect(url_for("login"))
+
+            user_guilds = await ddiscord.fetch_guilds()
+            admin_ok, final_guild = check_guild_admin(user_guilds, guild_id)
+
+            logging.info(f"Dashboard/{guild_id}: User admin status: {admin_ok}")
+            if not admin_ok:
+                logging.info(f"Dashboard/{guild_id}: User is NOT an admin. Rejecting.")
+                return "Not Authorized", 403
+
+            kwargs["final_guild"] = final_guild
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 def check_guild_admin(user_guilds, target_guild):
     logging.info(f"Checking if user is an admin of guild {target_guild}")

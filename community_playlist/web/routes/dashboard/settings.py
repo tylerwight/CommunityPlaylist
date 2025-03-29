@@ -1,8 +1,9 @@
 from quart import Blueprint, render_template, redirect, url_for
 import mysql.connector
 import logging
-from community_playlist.web.utils import check_guild_admin, query_db, bot_api_call
+from community_playlist.web.utils import check_guild_admin, bot_api_call
 from community_playlist.web.config import ddiscord, app, sqluser, sqlpass, bot_api_url
+import community_playlist.db as db
 
 dashboard_settings_bp = Blueprint('dashboard_settings', __name__)
 
@@ -39,12 +40,13 @@ async def dashboard_channel(guild_id):
 	logging.info(f"Dashboard/{guild_id}/channel: response from get_channels: {channel_names}.")
 
 
-	current_channel = (query_db(f"SELECT watch_channel from guilds where guild_id={final_guild.id}"))
-	logging.info(f"Dashboard/{guild_id}/channel: current channel {current_channel}")
-	if(current_channel == []):
+	current_channel = db.guild.get_watch_channel(final_guild.id)
+	if not current_channel:
 		current_channel = "NONE"
-	else:
-		current_channel = current_channel[0][0]
+
+
+	logging.info(f"Dashboard/{guild_id}/channel: current channel {current_channel}")
+
 
 
 	for target_channel in channel_names:
@@ -74,12 +76,13 @@ async def dashboard_toggle(guild_id):
 		logging.info(f"Dashboard/{guild_id}/toggle: User is NOT an admin of this server. Rejecting.")
 		return ("Not Authorized")
 	
-	bot_enabled = (query_db(f"SELECT enabled from guilds where guild_id={final_guild.id}"))
-	
-	if(bot_enabled == [] or bot_enabled == [(None,)]):
-		bot_enabled = 1
-	else:
-		bot_enabled = bot_enabled[0][0]
+
+	bot_enabled = db.guild.get_enabled_status(final_guild.id)
+	if bot_enabled is None:
+		bot_enabled = False 
+		logging.info(f"Dashboard/{guild_id}: Didn't get bot enabled status from DB. This should always exist as a 1 or 0")
+
+
 	
 	#swap the state
 	if bot_enabled == 1:
@@ -88,14 +91,8 @@ async def dashboard_toggle(guild_id):
 		bot_enabled = 1
 
 	logging.info(f"Dashboard/{guild_id}/toggle: writing bot enabled to db: {bot_enabled}")
-	mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
-	cursor = mydb.cursor()
-	sql = "UPDATE guilds set enabled = %s where guild_id = %s"
-	val = (bot_enabled, guild_id)
-	cursor.execute(sql, val)
-	mydb.commit()
-	cursor.close()
-	mydb.close()   
+
+	db.guild.set_enabled_status(guild_id, bot_enabled)
 
 	logging.info(f"Dashboard/{guild_id}/toggle: Changed DB, asking bot to read from DB and update")
 
@@ -123,14 +120,7 @@ async def dashboard_channel_set(guild_id, channel_id):
 		logging.info("Dashboard/{guild_id}/channel/{channel_id}: User is NOT an admin of this server. Rejecting.")
 		return ("Not Authorized")
 	
-	mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
-	cursor = mydb.cursor()
-	sql = "UPDATE guilds set watch_channel = %s where guild_id = %s"
-	val = (channel_id, guild_id)
-	cursor.execute(sql, val)
-	mydb.commit()
-	cursor.close()
-	mydb.close()   
+	db.guild.set_watch_channel(guild_id, channel_id)
 
 	logging.info(f"Dashboard/{guild_id}/channel/{channel_id}: Changed DB, asking bot to read from DB and update")
 	response = bot_api_call(endpoint="update_guild", payload={"guild_id": guild_id}, method="POST")

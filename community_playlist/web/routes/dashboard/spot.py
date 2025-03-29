@@ -4,9 +4,10 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import mysql.connector
 import logging
-from community_playlist.web.utils import check_guild_admin, query_db, GetPlaylistID, bot_api_call
+from community_playlist.web.utils import check_guild_admin, GetPlaylistID, bot_api_call
 from community_playlist.db.spotipy_handler import CacheSQLHandler
 from community_playlist.web.config import ddiscord, app, sqluser, sqlpass, callbackurl, cid, secret, spotify_scope, enkey
+import community_playlist.db as db
 
 dashboard_spot_bp = Blueprint('dashboard_spot', __name__)
 
@@ -28,13 +29,14 @@ async def dashboard_playlist(guild_id):
         logging.info(f"Dashboard/{guild_id}/playlist: User is NOT an admin of this server. Rejecting.")
         return ("Not Authorized")
     
-    current_playlist = (query_db(f"SELECT playlist_name from guilds where guild_id={final_guild.id}"))
-    if(current_playlist == [] or current_playlist == [(None,)]):
+    playlist_info = db.guild.get_playlist(final_guild.id)
+    if not playlist_info or not playlist_info["name"]:
         current_playlist = "NONE"
         has_playlist = False
     else:
-        current_playlist = current_playlist[0][0]
+        current_playlist = playlist_info["name"]
         has_playlist = True
+
 
     if request.method == 'GET':
         logging.info(f"Dashboard/{guild_id}/playlist: GET request, returning {user.name}, {final_guild}, {authorized}, {current_playlist}")
@@ -87,15 +89,8 @@ async def dashboard_playlist(guild_id):
         sp.user_playlist_create(username, name=playlist_title)
         playlist_uri = GetPlaylistID(username, playlist_title, sp)
     
+    db.guild.set_playlist(guild_id, playlist_title, playlist_uri)
 
-    mydb = mysql.connector.connect(host = "localhost", user = sqluser, password = sqlpass, database = "discord")
-    cursor = mydb.cursor()
-    sql = "UPDATE guilds set playlist_name = %s, playlist_id = %s where guild_id = %s"
-    val = (playlist_title, playlist_uri, guild_id)
-    cursor.execute(sql, val)
-    mydb.commit()
-    cursor.close()
-    mydb.close()  
 
     response = bot_api_call(endpoint="update_guild", payload={"guild_id": guild_id}, method="POST")
     if response:
@@ -147,34 +142,7 @@ async def dashboard_spotdc(guild_id):
         return ("Not Authorized")
     
 
-    try:
-        mydb = mysql.connector.connect(
-            host="localhost",
-            user=sqluser,
-            password=sqlpass,
-            database="discord"
-        )
-        cursor = mydb.cursor()
-    except Exception as e:
-        logging.error(f"SPOTDC: Error connecting to MySQL DB: {e}")
-        return None
-
-    try:
-        update_query = "UPDATE guilds SET spotipy_token = NULL WHERE guild_id=%s"
-        cursor.execute(update_query, (guild_id,))
-
-        if cursor.rowcount == 0:
-            logging.warning(f"SPOTDC: Could not write to DB with: {update_query}")
-            return None
-        mydb.commit()
-
-
-    except Exception as e:
-        logging.error(f"Error during DB update: {e}")
-    finally:
-        cursor.close()
-        mydb.close()
-
+    db.guild.update_token(guild_id, "NULL")
 
     return redirect(f"/dashboard/{guild_id}")
 

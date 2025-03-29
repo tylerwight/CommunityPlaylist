@@ -3,9 +3,10 @@ from quart import Blueprint, render_template, redirect, url_for
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import logging
-from community_playlist.web.utils import is_invited, check_bot_exists, check_guild_admin, query_db, bot_api_call
+from community_playlist.web.utils import is_invited, check_bot_exists, check_guild_admin, bot_api_call
 from community_playlist.db.spotipy_handler import CacheSQLHandler
 from community_playlist.web.config import ddiscord, app, callbackurl, cid, secret, add_bot_url, spotify_scope, sqluser, sqlpass, enkey
+import community_playlist.db as db
 
 dashboard_guild_bp = Blueprint('dashboard_guild', __name__)
 
@@ -16,9 +17,6 @@ async def dashboard_server(guild_id):
 		logging.info(f'Dashboard/{guild_id}: {admin_okay}')
 		return redirect(url_for("login")) 
 
-	user = await ddiscord.fetch_user()
-	spot_auth = False
-	installed = await check_bot_exists(guild_id)
 	user_guilds = await ddiscord.fetch_guilds()
 	admin_okay, final_guild = check_guild_admin(user_guilds, guild_id)
 
@@ -26,6 +24,12 @@ async def dashboard_server(guild_id):
 	if admin_okay != True:
 		logging.info(f"Dashboard/{guild_id}: User is NOT an admin of this server. Rejecting.")
 		return ("Not Authorized")
+
+
+	user = await ddiscord.fetch_user()
+	spot_auth = False
+	installed = await check_bot_exists(guild_id)
+	
 
 	try:
 		cache_handler = CacheSQLHandler(cache_where=f"guild_id={guild_id}",
@@ -65,29 +69,28 @@ async def dashboard_server(guild_id):
 	logging.info(f"Dashboard/{guild_id}: response from get_channels: {channel_names}.")
 		
 
-	current_channel_id = (query_db(f"SELECT watch_channel from guilds where guild_id={final_guild.id}"))
-	if(current_channel_id == [] or current_channel_id == [(None,)]):
+	# Get current watch channel
+	current_channel_id = db.guild.get_watch_channel(final_guild.id)
+	if not current_channel_id:
 		current_channel_id = "NONE"
 		has_channel = False
 	else:
-		current_channel_id = current_channel_id[0][0]
 		has_channel = True
 
-	current_playlist = (query_db(f"SELECT playlist_name from guilds where guild_id={final_guild.id}"))
-	if(current_playlist == [] or current_playlist == [(None,)]):
+	# Get current playlist name
+	playlist_info = db.guild.get_playlist(final_guild.id)
+	if not playlist_info or not playlist_info["name"]:
 		current_playlist = "NONE"
 		has_playlist = False
 	else:
-		current_playlist = current_playlist[0][0]
+		current_playlist = playlist_info["name"]
 		has_playlist = True
 
-	bot_enabled = (query_db(f"SELECT enabled from guilds where guild_id={final_guild.id}"))
-
-	if(bot_enabled == [] or bot_enabled == [(None,)]):
-		current_playlist = False
-		logging.info(f"Dashboard/{guild_id}:Didn't get bot enabled status from DB. This should always exist as a 1 or 0")
-	else:
-		bot_enabled = bot_enabled[0][0]
+	# Get enabled status
+	bot_enabled = db.guild.get_enabled_status(final_guild.id)
+	if bot_enabled is None:
+		bot_enabled = False  # Or whatever fallback you want
+		logging.info(f"Dashboard/{guild_id}: Didn't get bot enabled status from DB. This should always exist as a 1 or 0")
 	
 	if bot_enabled == 1: 
 		bot_enabled = True
