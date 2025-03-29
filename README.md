@@ -55,9 +55,9 @@ ENKEY = "<encryption key for pynacl>"
 - [x] clean up sql code and architecture
 - [x] streamline spotify authentication (using web frontend)
 - [x] add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
-- [ ] update to discords built in command prefix stuff
 - [x] Update readme with new howto info
 - [x] Store Spotify keys in db and encrypt them
+- [ ] update to discords built in command prefix stuff
 - [ ] Make better setup script
 - [ ] redesign database schema
 - [ ] add testing
