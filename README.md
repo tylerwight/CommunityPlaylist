@@ -1,22 +1,27 @@
 # CommunityPlaylist
+
 A Python Discord bot that monitors your Discord server for Spotify links and creates a running playlist of the music.
 
-At a glance:
-- Uses discord.py and spotipy to interface with Discord and Spotify
-- Web frontend (flask/quart) for users to manage bot status, configuration, and Spotify authentication.
-- Frontend and bot communicate with FastAPI api calls
-- Users quart_discord for website's "login with Discord" functionality
-- Full multi user support with the intention on it being a public application
-- At the moment the offical website is invite only as I am working toward getting the Spotify app approved.
+
+## Features
+
+- Automatically builds a Spotify playlist from song links posted in Discord
+- Built with `discord.py` and `spotipy`
+- Includes a Flask/Quart web frontend for management and Spotify authentication
+- Secure: uses `quart_discord` for Discord login (no credentials stored), and `pynacl` to encrypt Spotify tokens
+- FastAPI powers internal API communication between the bot and web frontend
+- Full multi-user support; scalable and designed as a public-facing app
+- Currently in invite-only mode while awaiting Spotify app approval
 
 https://communityplaylist.org
 
 ![web](image.png)
 
 
-Bot commands:
-- !get_playlist
-- all other management and configuration of the bot is done on the web interface.
+## Bot Commands
+
+- `!get_playlist` — Retrieve the current server playlist
+- All other setup and configuration is handled via the web interface
 
 ## How To Build:
 Steps to setup and run this code
@@ -37,6 +42,7 @@ DISCORD_CLIENT_REDIRECT_URL="<url>/callback_D"
 CALLBACK="<url>/callback"
 PORT = "8080"
 INVITED = '["<discord_user_id>", "<discord_user_id>"]'
+ENKEY = "<encryption key for pynacl>"
 ```
 - run `cd web; bash ./start_webserver.sh` to start website
 - run `cd bot; python3 CommunityPlaylistbot.py` to start the bot
@@ -51,7 +57,7 @@ INVITED = '["<discord_user_id>", "<discord_user_id>"]'
 - [x] add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
 - [ ] update to discords built in command prefix stuff
 - [x] Update readme with new howto info
-- [ ] Store Spotify keys in a better place
+- [x] Store Spotify keys in db and encrypt them
 - [ ] Make better setup script
 - [ ] redesign database schema
 - [ ] add testing
