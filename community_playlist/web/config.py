@@ -39,7 +39,7 @@ ddiscord = DiscordOAuth2Session(app)
 
 
 #Logging config
-os.makedirs("../logs", exist_ok=True)
+os.makedirs("./logs", exist_ok=True)
 
 console_handler = colorlog.StreamHandler()
 console_handler.setFormatter(colorlog.ColoredFormatter(
@@ -57,7 +57,7 @@ console_handler.setFormatter(colorlog.ColoredFormatter(
 
 
 file_handler = TimedRotatingFileHandler(
-    "../logs/CommunityPlaylistWeb.log",
+    "./logs/CommunityPlaylistWeb.log",
     when="midnight",
     interval=1,
     backupCount=7,

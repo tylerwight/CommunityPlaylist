@@ -24,7 +24,7 @@ enkey = base64.b64decode(os.getenv('ENKEY'))
 
 ## logging config
 
-os.makedirs("../logs", exist_ok=True)
+os.makedirs("./logs", exist_ok=True)
 
 
 console_handler = colorlog.StreamHandler()
@@ -43,7 +43,7 @@ console_handler.setFormatter(colorlog.ColoredFormatter(
 
 
 file_handler = TimedRotatingFileHandler(
-    "../logs/CommunityPlaylistBot.log",
+    "./logs/CommunityPlaylistBot.log",
     when="midnight",
     interval=1,
     backupCount=7,
@@ -79,7 +79,7 @@ api_logging_config = {
         "file": {
             "formatter": "default",
             "class": "logging.handlers.TimedRotatingFileHandler",
-            "filename": "../logs/CommunityPlaylistBot.log",
+            "filename": "./logs/CommunityPlaylistBot.log",
             "when": "midnight",
             "interval": 1,
             "backupCount": 7,
