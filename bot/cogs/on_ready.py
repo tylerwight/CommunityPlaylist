@@ -36,7 +36,7 @@ class on_ready(commands.Cog):
                     self.bot.guilds_state[existing_guild[0]] = {
                         "guild_id":         existing_guild[0],
                         "name":             existing_guild[1],
-                        "spotipy_username": existing_guild[2],
+                        "spotipy_token": existing_guild[2],
                         "watch_channel":    existing_guild[3],
                         "enabled":          existing_guild[4],
                         "playlist_name":    existing_guild[5],
@@ -50,13 +50,13 @@ class on_ready(commands.Cog):
                 self.bot.guilds_state[str(connected_guild.id)] = {
                     "guild_id":         str(connected_guild.id),
                     "name":             connected_guild.name,
-                    "spotipy_username": "none",
+                    "spotipy_token": "NULL",
                     "watch_channel":    "",
                     "enabled":          "0",
                     "playlist_name":    "",
                     "playlist_id":      "",
                 }
-                sql = "INSERT INTO guilds (guild_id,name,enabled, spotipy_username) VALUES (%s, %s, %s, %s)"
+                sql = "INSERT INTO guilds (guild_id,name,enabled, spotipy_token) VALUES (%s, %s, %s, %s)"
                 val = (self.bot.guilds_state[str(connected_guild.id)]["guild_id"],
                        self.bot.guilds_state[str(connected_guild.id)]["name"],
                        0, "tmp"

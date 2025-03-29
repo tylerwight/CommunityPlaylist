@@ -34,7 +34,7 @@ mysql -u root -p  -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH auth_socket;
 
 sudo mysql -u root -e "CREATE USER 'discord'@'localhost' IDENTIFIED BY 'password';"
 
-sudo mysql -u root -e "CREATE DATABASE discord; use discord; CREATE TABLE guilds (guild_id varchar(255), name varchar(255), spotipy_username varchar(255), watch_channel varchar(255), enabled BOOL, playlist_name varchar(255), playlist_id varchar(255));"
+sudo mysql -u root -e "CREATE DATABASE discord; use discord; CREATE TABLE guilds (guild_id varchar(255), name varchar(255), spotipy_token varchar(1024), watch_channel varchar(255), enabled BOOL, playlist_name varchar(255), playlist_id varchar(255));"
 
 sudo mysql -u root -e "GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT, REFERENCES, RELOAD on *.* TO 'discord'@'localhost';"
 

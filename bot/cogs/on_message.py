@@ -7,6 +7,8 @@ import spotipy.util as util
 import re
 from spotipy.oauth2 import SpotifyOAuth
 from utils import album_to_tracks
+from db import CacheSQLHandler
+from config import sqluser, sqlpass, enkey
 
 
 class on_message(commands.Cog):
@@ -26,7 +28,7 @@ class on_message(commands.Cog):
             return
 
         logging.info(f"Message detected in guild {guild_id_str} => {current_guild}")
-        username = current_guild["spotipy_username"]
+        username = current_guild["spotipy_token"]
 
         channel_id_str = str(message.channel.id)
         channel_obj = message.channel
@@ -54,7 +56,12 @@ class on_message(commands.Cog):
 
             # Spotify Auth
             try:
-                cache_handler = spotipy.cache_handler.CacheFileHandler(username=current_guild["guild_id"])
+                #cache_handler = spotipy.cache_handler.CacheFileHandler(username=current_guild["guild_id"])
+                cache_handler = CacheSQLHandler(cache_where=f"guild_id={current_guild['guild_id']}",
+                                                sqluser=sqluser,
+                                                sqlpass=sqlpass,
+                                                encrypt=True,
+                                                key=enkey)
                 auth_manager = SpotifyOAuth(
                     client_id=self.bot.spotify_cid,
                     client_secret=self.bot.spotify_secret,

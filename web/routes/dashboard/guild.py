@@ -5,7 +5,8 @@ from spotipy.oauth2 import SpotifyOAuth
 import ast
 import logging
 from utils import is_invited, check_bot_exists, check_guild_admin, query_db, bot_api_call
-from config import ddiscord, app, callbackurl, cid, secret, add_bot_url, spotify_scope
+from db import CacheSQLHandler
+from config import ddiscord, app, callbackurl, cid, secret, add_bot_url, spotify_scope, sqluser, sqlpass, enkey
 
 dashboard_guild_bp = Blueprint('dashboard_guild', __name__)
 
@@ -28,8 +29,12 @@ async def dashboard_server(guild_id):
 		return ("Not Authorized")
 
 	try:
-		#cache_handler = spotipy.cache_handler.CacheFileHandler(username=guild_id)
-		cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path = f"../bot/.cache-{guild_id}")
+		cache_handler = CacheSQLHandler(cache_where=f"guild_id={guild_id}",
+										sqluser=sqluser,
+										sqlpass=sqlpass,
+										encrypt=True,
+										key=enkey)
+										
 		auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=spotify_scope, cache_handler=cache_handler)
 
 		if not cache_handler.get_cached_token() == None:

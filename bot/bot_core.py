@@ -69,7 +69,7 @@ class CommunityPlaylistBot(commands.Bot):
             self.guilds_state[guild_id_str] = {
                 "guild_id":         record[0],
                 "name":             record[1],
-                "spotipy_username": record[2],
+                "spotipy_token":    record[2],
                 "watch_channel":    record[3],
                 "enabled":          record[4],
                 "playlist_name":    record[5],
@@ -107,7 +107,7 @@ class CommunityPlaylistBot(commands.Bot):
 
         db_col_map = {
             "name": "name",
-            "spotipy_username": "spotipy_username",
+            "spotipy_token": "spotipy_token",
             "watch_channel": "watch_channel",
             "enabled": "enabled",
             "playlist_name": "playlist_name",

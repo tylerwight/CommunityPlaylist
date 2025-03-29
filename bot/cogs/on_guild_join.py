@@ -34,7 +34,7 @@ class on_guild_join(commands.Cog):
             logging.info("New Guild detected, adding to DB")
 
             # Insert a minimal row into the database
-            sql = """INSERT INTO guilds (guild_id, name, enabled, spotipy_username)
+            sql = """INSERT INTO guilds (guild_id, name, enabled, spotipy_token)
                      VALUES (%s, %s, %s, %s)"""
             val = (guild_id_str, str(guild.name), 0, "none")
             cursor.execute(sql, val)
@@ -46,7 +46,7 @@ class on_guild_join(commands.Cog):
             self.bot.guilds_state[guild_id_str] = {
                 "guild_id":         guild_id_str,
                 "name":             str(guild.name),
-                "spotipy_username": "none",
+                "spotipy_token": "NULL",
                 "watch_channel":    "",
                 "enabled":          0,
                 "playlist_name":    "",
@@ -61,7 +61,7 @@ class on_guild_join(commands.Cog):
             self.bot.guilds_state[guild_id_str] = {
                 "guild_id":         record[0],
                 "name":             record[1],
-                "spotipy_username": record[2],
+                "spotipy_token":    record[2],
                 "watch_channel":    record[3],
                 "enabled":          record[4],
                 "playlist_name":    record[5],

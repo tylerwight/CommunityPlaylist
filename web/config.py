@@ -6,6 +6,7 @@ import json
 import logging
 import colorlog
 from logging.handlers import TimedRotatingFileHandler
+import base64
 
 
 # App vars config
@@ -28,6 +29,7 @@ secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 add_bot_url = os.getenv('DISCORD_URL')
 spotify_scope = 'playlist-modify-public'
 bot_api_url = "http://localhost:8090/"
+enkey = base64.b64decode(os.getenv('ENKEY'))
 
 
 # Initialize Discord OAuth2 session

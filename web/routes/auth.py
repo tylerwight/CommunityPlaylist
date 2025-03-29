@@ -2,7 +2,8 @@ from quart import Blueprint, request, session, redirect, url_for
 import spotipy
 import logging
 from spotipy.oauth2 import SpotifyOAuth
-from config import ddiscord, app, callbackurl, cid, secret, spotify_scope
+from db import CacheSQLHandler
+from config import ddiscord, app, callbackurl, cid, secret, spotify_scope, sqluser, sqlpass, enkey
 
 
 auth_bp = Blueprint('auth', __name__)
@@ -35,9 +36,16 @@ async def callback_D():
 #Spotify Callback
 @app.route("/callback")
 async def callback():
+	acting_guild = session.get('acting_guild', 'none')
 	logging.info("Callback: Spotify callback initiated")
-	logging.info(f"Callback: We are working on {session.get('acting_guild', 'none')}")
-	cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path = f"../bot/.cache-{session.get('acting_guild', 'none')}")
+	logging.info(f"Callback: We are working on {acting_guild}")
+	
+	cache_handler = CacheSQLHandler(cache_where=f"guild_id={acting_guild}",
+									sqluser=sqluser,
+									sqlpass=sqlpass,
+									encrypt=True,
+									key=enkey)
+	
 	auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=spotify_scope, open_browser=False, show_dialog=True, cache_handler=cache_handler)
 
 	if not ('code' in request.args):

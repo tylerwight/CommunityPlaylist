@@ -4,6 +4,7 @@ import discord
 import logging
 import colorlog
 from logging.handlers import TimedRotatingFileHandler
+import base64
 
 #App variables config
 
@@ -18,6 +19,7 @@ cid = os.getenv('SPOTIPY_CLIENT_ID')
 secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 spotify_scope = 'playlist-modify-public'
 TOKEN = os.getenv('DISCORD_TOKEN')
+enkey = base64.b64decode(os.getenv('ENKEY'))
 
 
 ## logging config

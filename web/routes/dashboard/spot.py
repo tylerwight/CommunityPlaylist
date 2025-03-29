@@ -5,7 +5,8 @@ from spotipy.oauth2 import SpotifyOAuth
 import mysql.connector
 import logging
 from utils import check_guild_admin, query_db, GetPlaylistID, bot_api_call
-from config import ddiscord, app, sqluser, sqlpass, callbackurl, cid, secret, spotify_scope
+from db import CacheSQLHandler
+from config import ddiscord, app, sqluser, sqlpass, callbackurl, cid, secret, spotify_scope, enkey
 
 dashboard_spot_bp = Blueprint('dashboard_spot', __name__)
 
@@ -44,8 +45,11 @@ async def dashboard_playlist(guild_id):
 
     input_playlist = (await request.form).get('playlist_input')
     try:
-        #cache_handler = spotipy.cache_handler.CacheFileHandler(username=guild_id)
-        cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path = f"../bot/.cache-{guild_id}")
+        cache_handler = CacheSQLHandler(cache_where=f"guild_id={guild_id}",
+                                        sqluser=sqluser,
+                                        sqlpass=sqlpass,
+                                        encrypt=True,
+                                        key=enkey)
         auth_manager=SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=callbackurl, scope=spotify_scope, cache_handler=cache_handler)
 
         if not cache_handler.get_cached_token() == None:
@@ -142,16 +146,35 @@ async def dashboard_spotdc(guild_id):
         logging.info(f"Dashboard/{guild_id}/spotdc: User is NOT an admin of this server. Rejecting.")
         return ("Not Authorized")
     
-    cachefile = (f"../bot/.cache-{guild_id}")
+
     try:
-        os.remove(cachefile)
-        logging.info(f"Dashboard/{guild_id}/spotdc: {cachefile} successfully deleted Spotify data")
-    except FileNotFoundError:
-        logging.info(f"Dashboard/{guild_id}/spotdc:{cachefile} not found.")
-        return ("Could not find your Spotify data, is it already deleted?")
+        mydb = mysql.connector.connect(
+            host="localhost",
+            user=sqluser,
+            password=sqlpass,
+            database="discord"
+        )
+        cursor = mydb.cursor()
     except Exception as e:
-        logging.info(f"Dashboard/{guild_id}/spotdc: Error removing cache file: {e}")
-        return ("Could not find your Spotify data, is it already deleted?")
+        logging.error(f"SPOTDC: Error connecting to MySQL DB: {e}")
+        return None
+
+    try:
+        update_query = "UPDATE guilds SET spotipy_token = NULL WHERE guild_id=%s"
+        cursor.execute(update_query, (guild_id,))
+
+        if cursor.rowcount == 0:
+            logging.warning(f"SPOTDC: Could not write to DB with: {update_query}")
+            return None
+        mydb.commit()
+
+
+    except Exception as e:
+        logging.error(f"Error during DB update: {e}")
+    finally:
+        cursor.close()
+        mydb.close()
+
 
     return redirect(f"/dashboard/{guild_id}")
 
