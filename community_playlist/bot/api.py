@@ -46,6 +46,5 @@ async def update_guild_data(data: GuildRequest):
 
 
 def run_api():
-
     uvicorn.run("community_playlist.bot.api:app", host="0.0.0.0", port=8090, log_config=api_logging_config)
 

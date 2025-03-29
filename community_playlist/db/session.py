@@ -1,6 +1,6 @@
 import mysql.connector
 import os
-from community_playlist.web.config import sqluser, sqlpass
+from community_playlist.db.config import sqluser, sqlpass
 
 def get_connection():
     return mysql.connector.connect(

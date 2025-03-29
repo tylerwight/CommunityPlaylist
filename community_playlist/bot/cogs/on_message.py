@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import logging
-import mysql.connector
 import spotipy
 import spotipy.util as util
 import re

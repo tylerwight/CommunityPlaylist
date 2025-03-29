@@ -23,7 +23,7 @@ https://communityplaylist.org
 - `!get_playlist` — Retrieve the current server playlist
 - All other setup and configuration is handled via the web interface
 
-## How To Build:
+## How To Run Yourself:
 Steps to setup and run this code
 
 - use setup.sh to create a mysql server with database named "discord" and correct schema
@@ -57,9 +57,9 @@ ENKEY = "<encryption key for pynacl>"
 - [x] add ability to see login info on web frontend, and in turn, confirm your authentication data is removed
 - [x] Update readme with new howto info
 - [x] Store Spotify keys in db and encrypt them
+- [x] redesign database schema
 - [ ] update to discords built in command prefix stuff
 - [ ] Make better setup script
-- [ ] redesign database schema
 - [ ] add testing
 - [ ] add automated deploying/updating
 - [ ] add automated testing
