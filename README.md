@@ -58,7 +58,7 @@ ENKEY = "<encryption key for pynacl>"
 - [x] Update readme with new howto info
 - [x] Store Spotify keys in db and encrypt them
 - [x] redesign database schema
-- [ ] update discord intents to be more narrow (don't ask for admin)
+- [x] update discord intents to be more narrow (don't ask for admin)
 - [ ] update to discords built in command prefix stuff
 - [ ] Make better setup script
 - [ ] add testing

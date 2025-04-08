@@ -11,7 +11,9 @@ import threading
 
 if __name__ == '__main__':
 
-    intents = discord.Intents.all()
+    intents = discord.Intents.default()
+    intents.message_content = True  # Required to read message text
+    intents.messages = True         # Optional, but doesn't hurt to be explicit
     
     bot = CommunityPlaylistBot(command_prefix="!",intents=intents, callbackurl=callbackurl, flaskport=port, sqluser=sqluser, sqlpass=sqlpass, spotify_cid=cid, spotify_secret=secret)
     api.bot_instance = bot
