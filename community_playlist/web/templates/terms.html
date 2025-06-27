@@ -1,0 +1,187 @@
+<!DOCTYPE HTML>
+<!--
+	Solid State by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>CommunityPlaylist</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="static/assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="static/assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header  -->
+					<!---->
+					{% if authorized %}
+					<header id="header">
+					<h1>
+						<a href="{{url_for('home')}}"><img class="icon" style="width: 2.5em; height: auto; top: 12px;" src="{{ url_for( 'static', filename = 'images/main_logo.png') }}" alt="" /></a>
+						CommunityPlaylist - {{username}}
+					</h1>
+					{% else %}
+					<header id="header" class="alt">
+					<h1>CommunityPlaylist</h1>
+					{%endif %}
+					
+					
+					<nav>
+						<a href="#menu">Menu</a>
+					</nav>
+				</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<div class="inner">
+							<h2>Menu</h2>
+							<ul class="links">
+								<li><a href="{{url_for('home')}}">Home</a></li>
+								<li><a href="{{url_for('instructions.instructions')}}">Instructions</a></li>
+								{% if authorized %}
+								<li><a href="{{url_for('dashboard')}}">Dashboard</a></li>
+								<li><a href="{{url_for('logout')}}">Logout</a></li>
+								{% else %}
+								<li><a href="/login">Log In</a></li>
+								{%endif %}
+								
+								
+							</ul>
+							<a href="#" class="close">Close</a>
+						</div>
+					</nav>
+
+				<!-- Banner -->
+					<section id="banner">
+						<div class="inner">
+							<div class="inner">
+								<h2>Terms of Service & Privacy Policy</h2>
+							</div>
+						</div>
+					</section>
+
+
+						<!-- One : Terms of Service -->
+						<section id="one" class="wrapper spotlight style1" style="text-align: left;">
+							<div class="inner">
+								<div class="content" style="text-align: left;">
+									<h2 class="major">Terms of Service</h2>
+									<p><strong>Last Updated:&nbsp; June 27, 2025</strong></p>
+
+									<h3>1.&nbsp;Acceptance&nbsp;of&nbsp;Terms</h3>
+									<p>By using <em>CommunityPlaylist</em> (“the Bot”) you agree to be bound by these Terms of Service
+									and our Privacy Policy. If you do not agree, please do not use the Bot.</p>
+
+									<h3>2.&nbsp;Bot&nbsp;Functionality</h3>
+									<p>The Bot monitors text channels where it is authorized and listens for Spotify track links.
+									When a link is detected, the Bot adds the track to a predefined Spotify playlist.</p>
+
+									<h3>3.&nbsp;User&nbsp;Data</h3>
+									<ul>
+										<li>Message content (to detect Spotify links)</li>
+										<li>User ID and channel ID (for activity logging / abuse prevention)</li>
+										<li>Spotify link metadata</li>
+										<li>Encrptyed Spotify Token (for interfacing with Spotify API)</li>
+									</ul>
+
+									<h3>4.&nbsp;Usage&nbsp;Restrictions</h3>
+									<ul>
+										<li>No spamming or flooding playlists</li>
+										<li>No use that violates Discord’s Terms of Service</li>
+										<li>No interference with the Bot</li>
+									</ul>
+
+									<h3>5.&nbsp;Disclaimer&nbsp;of&nbsp;Warranty</h3>
+									<p>The Bot is provided “as is.” We make no warranties regarding uptime, reliability, or fitness for a
+									particular purpose.</p>
+
+									<h3>6.&nbsp;Limitation&nbsp;of&nbsp;Liability</h3>
+									<p>We are not liable for any damages or data loss arising from the use of the Bot.</p>
+
+									<h3>7.&nbsp;Termination</h3>
+									<p>We reserve the right to remove access to the Bot for any reason, including misuse or violation of
+									these terms.</p>
+
+									<h3>8.&nbsp;Changes&nbsp;to&nbsp;Terms</h3>
+									<p>We may update these Terms at any time. Continued use after changes implies acceptance.</p>
+
+									<h3>9.&nbsp;Contact</h3>
+									<p>Questions? Contact us at&nbsp;<a href="mailto:help@communityplaylist.org">help@communityplaylist.org</a>.</p>
+								</div>
+							</div>
+						</section>
+
+						<!-- Two : Privacy Policy -->
+						<section id="two" class="wrapper alt spotlight style2">
+							<div class="inner">
+								<div class="content">
+									<h2 class="major">Privacy&nbsp;Policy</h2>
+									<p><strong>Last Updated:&nbsp;June 27, 2025</strong></p>
+
+									<h3>1.&nbsp;Information&nbsp;Collected</h3>
+									<ul>
+										<li><strong>Message Content&nbsp;</strong>&mdash;only messages containing Spotify links are processed.</li>
+										<li><strong>User &amp; Channel Metadata&nbsp;</strong>&mdash;user ID and channel ID may be logged.</li>
+										<li><strong>Spotify Metadata&nbsp;</strong>&mdash;track name, artist, album (via Spotify&nbsp;API).</li>
+										<li><strong>Spotify Token &nbsp;</strong>&mdash; For creating playlists on behalf of a user (via Spotify&nbsp;API).</li>
+									</ul>
+
+									<h3>2.&nbsp;How&nbsp;We&nbsp;Use&nbsp;Information</h3>
+									<p>To detect Spotify links, add tracks to the playlist, and optionally log additions to prevent duplicates
+									or abuse.</p>
+
+									<h3>3.&nbsp;Data&nbsp;Retention</h3>
+									<p>No message content or user data is stored permanently. You can choose to delete your Spotify Token and any point via the website.</p>
+
+									<h3>4.&nbsp;Data&nbsp;Sharing</h3>
+									<p>We do not sell, rent, or share your data. The only external service is the Spotify&nbsp;API.</p>
+
+									<h3>5.&nbsp;Your&nbsp;Choices</h3>
+									<ul>
+										<li><strong>Remove the Bot:</strong> You may remove it from your server at any time.</li>
+										<li><strong>Data Removal:</strong> You may remove all your stored data in the Website Dashboard</li>
+									</ul>
+
+									<h3>6.&nbsp;Children’s&nbsp;Privacy</h3>
+									<p>The Bot is not intended for users under 13 (or the minimum age in your jurisdiction).</p>
+
+									<h3>7.&nbsp;Security</h3>
+									<p>We use reasonable measures to protect data, but no system is completely secure. Use at your own risk.</p>
+
+									<h3>8.&nbsp;Changes&nbsp;to&nbsp;This&nbsp;Policy</h3>
+									<p>We may update this Policy from time to time. Continued use after changes constitutes consent.</p>
+
+									<h3>9.&nbsp;Contact</h3>
+									<p>Questions? Contact us at&nbsp;<a href="mailto:help@communityplaylist.org">help@communityplaylist.org</a>.</p>
+								</div>
+							</div>
+						</section>
+				
+
+				<!-- Footer -->
+					<section id="footer">
+						<div class="inner">
+
+							<ul class="copyright">
+								<li>&copy; Tyler Wight</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="static/assets/js/jquery.min.js"></script>
+			<script src="static/assets/js/jquery.scrollex.min.js"></script>
+			<script src="static/assets/js/browser.min.js"></script>
+			<script src="static/assets/js/breakpoints.min.js"></script>
+			<script src="static/assets/js/util.js"></script>
+			<script src="static/assets/js/main.js"></script>
+
+	</body>
+</html>
