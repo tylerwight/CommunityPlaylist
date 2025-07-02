@@ -33,7 +33,7 @@ async def dashboard_playlist(guild_id, final_guild):
     if request.method != 'POST':
         return (f"error, not POST or GET?")
 
-    input_playlist = (await request.form).get('playlist_input')
+    input_playlist = f"{(await request.form).get('playlist_input')}_{final_guild.id}"
     try:
         #cache_handler = CacheSQLHandler(cache_where=f"guild_id={guild_id}",
         cache_handler = CacheSQLHandler(cache_where=f"guild_id=0",

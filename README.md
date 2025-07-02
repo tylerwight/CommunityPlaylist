@@ -59,6 +59,7 @@ ENKEY = "<encryption key for pynacl>"
 - [x] Store Spotify keys in db and encrypt them
 - [x] redesign database schema
 - [x] update discord intents to be more narrow (don't ask for admin)
+- [ ] pivot to using a single sp account to make public playlists and link to them (due to spotify api changes on public app approval)
 - [ ] update to discords built in command prefix stuff
 - [ ] Make better setup script
 - [ ] add testing
