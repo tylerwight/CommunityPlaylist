@@ -6,7 +6,9 @@ import json
 import logging
 
 
-
+"""
+Class that is a Cache Handler for Spotipy that allows you to encrypt and then store Spotify API tokens in SQL
+"""
 class CacheSQLHandler(CacheHandler):
     def __init__(self,
                  cache_sql_host = "localhost",

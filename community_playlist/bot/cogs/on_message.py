@@ -55,7 +55,8 @@ class on_message(commands.Cog):
 
             # Spotify Auth
             try:
-                cache_handler = CacheSQLHandler(cache_where=f"guild_id={current_guild['guild_id']}",
+                #cache_handler = CacheSQLHandler(cache_where=f"guild_id={current_guild['guild_id']}",
+                cache_handler = CacheSQLHandler(cache_where=f"guild_id=0",
                                                 sqluser=sqluser,
                                                 sqlpass=sqlpass,
                                                 encrypt=True,

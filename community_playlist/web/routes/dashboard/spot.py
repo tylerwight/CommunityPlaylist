@@ -35,7 +35,8 @@ async def dashboard_playlist(guild_id, final_guild):
 
     input_playlist = (await request.form).get('playlist_input')
     try:
-        cache_handler = CacheSQLHandler(cache_where=f"guild_id={guild_id}",
+        #cache_handler = CacheSQLHandler(cache_where=f"guild_id={guild_id}",
+        cache_handler = CacheSQLHandler(cache_where=f"guild_id=0",
                                         sqluser=sqluser,
                                         sqlpass=sqlpass,
                                         encrypt=True,
