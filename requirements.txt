@@ -1,0 +1,12 @@
+python-dotenv
+discord
+mysql-connector-python
+colorlog
+fastapi
+uvicorn
+spotipy
+pynacl
+
+hypercorn # potentially can be removed from code?
+quart
+quart_discord

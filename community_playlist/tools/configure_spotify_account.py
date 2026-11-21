@@ -46,7 +46,7 @@ async def callback():
 
 	logging.info("Callback: Found Spotify authcode")
 
-	auth_manager.get_access_token(request.args.get("code"))
+	auth_manager.get_access_token(request.args.get("code"), check_cache=False)
 
 	if not auth_manager.validate_token(cache_handler.get_cached_token()):
 		logging.info("Callback: Spotify auth code rejected, redirecting")
